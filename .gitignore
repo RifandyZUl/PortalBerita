@@ -1,0 +1,34 @@
+# === Node ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Vite / React ===
+dist/
+.vite/
+build/
+
+# === Logs ===
+logs/
+*.log
+
+# === Environment ===
+.env
+.env.*
+
+# === Cache & Temp ===
+.cache/
+.tmp/
+
+# === Editor ===
+.vscode/
+.DS_Store
+Thumbs.db
+
+# === Testing ===
+coverage/
+
+# === Sequelize CLI (opsional) ===
+migrations/
+seeders/
