@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import NewsForm from '../../components/NewsForm';
+import NewsForm from '../../components/ManageNews/NewsForm';
 
 const ManageNews = () => {
   const [articles, setArticles] = useState([]);
@@ -18,8 +18,8 @@ const ManageNews = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Add New Article</h2>
+    <div className="space-y-6">
+      <h2 className="text-lg font-semibold text-gray-700">Add New Article</h2>
       <NewsForm
         selectedArticle={selectedArticle}
         setSelectedArticle={setSelectedArticle}

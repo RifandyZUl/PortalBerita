@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import TextEditor from '../components/RichTextEditor'; // Pastikan path sesuai
+import TextEditor from '../RichTextEditor'; // Pastikan path sesuai
 
 const initialFormState = {
   title: '',

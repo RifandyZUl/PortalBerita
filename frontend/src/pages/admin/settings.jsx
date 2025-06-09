@@ -1,8 +1,14 @@
+import ProfileCard from '@/components/settings/ProfileCard';
+import ProfileForm from '@/components/settings/ProfileForm';
+
 const Settings = () => {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold">Settings</h1>
-      <p className="text-gray-600 mt-2">Halaman ini akan berisi pengaturan sistem.</p>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold">Account Settings</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ProfileCard />
+        <ProfileForm />
+      </div>
     </div>
   );
 };
