@@ -1,25 +1,44 @@
 import jwt from 'jsonwebtoken';
-import { Admin } from '../models/admin.models.js';
+import dotenv from 'dotenv';
+import db from '../models/index.js';
+import { errorResponse } from '../utils/responseHandler.js';
 
-const protect = async (req, res, next) => {
-  let token;
+dotenv.config();
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.admin = await Admin.findByPk(decoded.id);
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+const { Admin } = db;
+
+export const protect = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return errorResponse(res, 'Akses ditolak. Token tidak ditemukan.', null, 401);
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded || !decoded.adminId) {
+      return errorResponse(res, 'Token tidak valid.', null, 403);
     }
-  } else {
-    res.status(401).json({ message: 'Not authorized, no token' });
+
+    const admin = await Admin.findByPk(decoded.adminId);
+    if (!admin) {
+      return errorResponse(res, 'Admin tidak ditemukan.', null, 401);
+    }
+
+    req.admin = admin; // Tambahkan admin ke req
+    next();
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('❌ Token verification error:', error.message);
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      return errorResponse(res, 'Token kadaluarsa. Silakan login kembali.', null, 401);
+    }
+
+    return errorResponse(res, 'Token tidak valid atau error lainnya.', error.message, 403);
   }
 };
-
-export { protect };

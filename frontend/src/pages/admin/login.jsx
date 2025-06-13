@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import InputField from '../../components/InputField';
 import { loginAdmin } from '../../api/auth';
 import { setToken } from '../../utils/token';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -15,9 +14,9 @@ const Login = () => {
     setError('');
 
     try {
-      const data = await loginAdmin(email, password);
-      setToken(data.token); // Simpan token
-      navigate('/admin/dashboard'); // Arahkan ke dashboard
+      const data = await loginAdmin(emailOrUsername, password);
+      setToken(data.token);
+      navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message || 'Terjadi kesalahan saat login.');
     }
@@ -37,15 +36,15 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="emailOrUsername" className="block text-sm font-medium mb-1">
               Email / Username
             </label>
             <input
-              id="email"
-              type="email"
+              id="emailOrUsername"
+              type="text"
               className="w-full border border-gray-400 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={emailOrUsername}
+              onChange={(e) => setEmailOrUsername(e.target.value)}
               required
             />
           </div>

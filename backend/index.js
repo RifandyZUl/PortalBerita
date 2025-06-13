@@ -1,47 +1,82 @@
-// index.js
-
-import express from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
-import connectDB from './config/db.js';
-import db from './models/index.js'; // Sequelize instance
-import authRoutes from './routes/auth.routes.js';
-import adminRoutes from './routes/admin.routes.js';
-import dashboardRoutes from './routes/admin/dashboardRoutes.js';
-import newsRoutes from './routes/newsRoutes.js';
-
 dotenv.config();
 
-const app = express();
+import express from 'express';
+import cors from 'cors';
+import connectDB from './config/db.js';
+import db from './models/index.js';
 
-// Middleware
-app.use(cors());
+// Import Routes
+import authRoutes from './routes/auth.routes.js';
+import adminRoutes from './routes/admin/admin.routes.js';
+import dashboardRoutes from './routes/admin/dashboard.routes.js';
+import newsRoutes from './routes/news.routes.js';
+import authorRoutes from './routes/author.routes.js';
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ===== MIDDLEWARE ===== //
+app.use(cors({
+  origin: ['http://localhost:5173'], // Ganti dengan domain frontend di production
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logger (optional, bisa hapus jika tidak perlu)
-app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.url}`);
-  next();
+// Logger untuk development
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`[${req.method}] ${req.originalUrl}`);
+    next();
+  });
+}
+
+// ===== ROUTES ===== //
+app.use('/api/auth', authRoutes);          // Login, logout, register (kalau ada)
+app.use('/api/admin', adminRoutes);        // Admin profile & update
+app.use('/api/admin', dashboardRoutes);    // Dashboard (GET /dashboard)
+app.use('/api/news', newsRoutes);          // CRUD berita
+app.use('/api/authors', authorRoutes);     // Dropdown author
+
+// ===== 404 Handler ===== //
+app.use((req, res) => {
+  return res.status(404).json({ message: 'Route not found' });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);            // → /api/auth/login, register, etc
-app.use('/api/admin', adminRoutes);          // → /api/admin/*
-app.use('/admin', dashboardRoutes);          // → /admin/dashboard
-app.use('/api/news', newsRoutes);            // → /api/news GET, POST, PUT, DELETE
+// ===== Global Error Handler ===== //
+app.use((err, req, res, next) => {
+  console.error('❌ Unhandled error:', err);
+  return res.status(500).json({
+    message: 'Something went wrong',
+    error: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+  });
+});
 
-// Server + Database Init
-const PORT = process.env.PORT || 5000;
-
-connectDB().then(async () => {
+// ===== Start Server ===== //
+async function startServer() {
   try {
-    await db.sequelize.sync({ alter: true }); // Use alter: true for development
+    await connectDB(); // custom config koneksi db
+    await db.sequelize.authenticate();
+    console.log('✅ PostgreSQL connected');
+
+    // Sync semua model (jika belum migrasi manual)
+    await Promise.all([
+      db.Admin.sync({ alter: true }),
+      db.Author.sync({ alter: true }),
+      db.Category.sync({ alter: true }),
+      db.News.sync({ alter: true }),
+      db.Comment.sync({ alter: true }),
+    ]);
+
     app.listen(PORT, () => {
-      console.log(`✅ Server running on http://localhost:${PORT}`);
-      console.log(`✅ Database synced successfully`);
+      console.log(`✅ Server running at http://localhost:${PORT}`);
     });
-  } catch (error) {
-    console.error('❌ Failed to sync database:', error);
+  } catch (err) {
+    console.error('❌ Failed to start server:', err);
+    process.exit(1);
   }
-});
+}
+
+startServer();

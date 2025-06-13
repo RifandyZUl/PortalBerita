@@ -10,6 +10,7 @@ const Sidebar = () => {
   const links = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
   { name: 'Manage News', path: '/admin/manage-news', icon: <Newspaper size={18} /> },
+  { name: 'Manage Categories', path: '/admin/manage-categories', icon: <Newspaper size={18} /> },
   { name: 'Manage Comments', path: '/admin/manage-comments', icon: <MessageSquare size={18} /> },
   { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} /> }
 ];

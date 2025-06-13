@@ -3,11 +3,12 @@ import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
 
 const Author = sequelize.define('Author', {
-  authorId: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+ authorId: {
+  type: DataTypes.INTEGER,
+  primaryKey: true,
+  autoIncrement: true,
+  field: 'author_id' // wajib match
+},
   name: {
     type: DataTypes.STRING,
     allowNull: false,

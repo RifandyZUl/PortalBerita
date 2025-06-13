@@ -1,35 +1,69 @@
-// controllers/newsController.js
 import { validationResult } from 'express-validator';
-import News from '../models/news.js';
+import db from '../models/index.js';
+import { successResponse, errorResponse } from '../utils/responseHandler.js';
 
+const { News, Author, Category, Admin } = db;
+
+// GET /api/news
 export const getAllNews = async (req, res) => {
   try {
-    const news = await News.findAll({ order: [['newsId', 'DESC']] });
-    res.json(news);
+    const news = await News.findAll({
+      order: [['newsId', 'DESC']],
+      include: [
+        { model: Author, attributes: ['authorId', 'name'] },
+        { model: Category, attributes: ['categoryId', 'name'] },
+        { model: Admin, attributes: ['adminId', 'username'] },
+      ],
+    });
+
+    return successResponse(res, 'Berhasil mengambil semua berita.', news);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to fetch news.' });
+    console.error('❌ Error fetching all news:', err.message);
+    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
 
+// GET /api/news/:id
 export const getNewsById = async (req, res) => {
   try {
-    const news = await News.findByPk(req.params.id);
-    if (!news) return res.status(404).json({ message: 'News not found.' });
-    res.json(news);
+    const news = await News.findByPk(req.params.id, {
+      include: [
+        { model: Author, attributes: ['authorId', 'name'] },
+        { model: Category, attributes: ['categoryId', 'name'] },
+        { model: Admin, attributes: ['adminId', 'username'] },
+      ],
+    });
+
+    if (!news) {
+      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
+    }
+
+    return successResponse(res, 'Berhasil mengambil detail berita.', news);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to fetch news.' });
+    console.error('❌ Error fetching news by ID:', err.message);
+    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
 
+// POST /api/news
 export const createNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return errorResponse(res, 'Validasi gagal.', errors.array(), 400);
   }
 
-  const { title, content, imageUrl, authorId, categoryId, status, publishedAt } = req.body;
+  const {
+    title,
+    content,
+    imageUrl,
+    authorId,
+    categoryId,
+    status,
+    publishedAt,
+  } = req.body;
+
+  const adminId = req.admin?.adminId;
+
   try {
     const newNews = await News.create({
       title,
@@ -37,29 +71,32 @@ export const createNews = async (req, res) => {
       imageUrl,
       authorId,
       categoryId,
+      adminId,
       status,
-      publishedAt: publishedAt || new Date(), // ⏱ fallback waktu saat ini
+      publishedAt: publishedAt || new Date(),
     });
-    res.status(201).json(newNews);
+
+    return successResponse(res, 'Berita berhasil dibuat.', newNews, 201);
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: 'Failed to create news.' });
+    console.error('❌ Error creating news:', err.message);
+    return errorResponse(res, 'Gagal membuat berita.', err.message, 500);
   }
 };
 
+// PUT /api/news/:id
 export const updateNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return errorResponse(res, 'Validasi gagal.', errors.array(), 400);
   }
 
   try {
     const news = await News.findByPk(req.params.id);
-    if (!news) return res.status(404).json({ message: 'News not found.' });
+    if (!news) {
+      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
+    }
 
-    const { title, content, imageUrl, authorId, categoryId, status, publishedAt } = req.body;
-
-    await news.update({
+    const {
       title,
       content,
       imageUrl,
@@ -67,24 +104,40 @@ export const updateNews = async (req, res) => {
       categoryId,
       status,
       publishedAt,
+    } = req.body;
+
+    const adminId = req.admin?.adminId;
+
+    await news.update({
+      title,
+      content,
+      imageUrl,
+      authorId,
+      categoryId,
+      adminId,
+      status,
+      publishedAt: publishedAt || new Date(),
     });
 
-    res.json(news);
+    return successResponse(res, 'Berita berhasil diperbarui.', news);
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: 'Failed to update news.' });
+    console.error('❌ Error updating news:', err.message);
+    return errorResponse(res, 'Gagal memperbarui berita.', err.message, 500);
   }
 };
 
+// DELETE /api/news/:id
 export const deleteNews = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id);
-    if (!news) return res.status(404).json({ message: 'News not found.' });
+    if (!news) {
+      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
+    }
 
     await news.destroy();
-    res.json({ message: 'News deleted successfully.' });
+    return successResponse(res, 'Berita berhasil dihapus.');
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to delete news.' });
+    console.error('❌ Error deleting news:', err.message);
+    return errorResponse(res, 'Gagal menghapus berita.', err.message, 500);
   }
 };

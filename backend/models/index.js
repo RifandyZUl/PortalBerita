@@ -1,29 +1,32 @@
-// models/index.js
 import { sequelize } from '../config/db.js';
+
+import Admin from './admin.js';
 import Author from './author.js';
 import Category from './category.js';
-import News from './news.js';
 import Comment from './comment.js';
-
-const db = {};
-
-db.sequelize = sequelize;
-db.Sequelize = sequelize.constructor;
-
-
-db.Author = Author;
-db.Category = Category;
-db.News = News;
-db.Comment = Comment;
+import News from './news.js';
 
 // Relasi
-db.Category.hasMany(News, { foreignKey: 'categoryId' });
-News.belongsTo(db.Category, { foreignKey: 'categoryId' });
+News.belongsTo(Admin, { foreignKey: 'adminId' });
+Admin.hasMany(News, { foreignKey: 'adminId' });
 
-db.Author.hasMany(News, { foreignKey: 'authorId' });
-News.belongsTo(db.Author, { foreignKey: 'authorId' });
+News.belongsTo(Author, { foreignKey: 'authorId' });
+Author.hasMany(News, { foreignKey: 'authorId' });
 
-News.hasMany(Comment, { foreignKey: 'newsId', as: 'comments' });
-Comment.belongsTo(News, { foreignKey: 'newsId', as: 'news' });
+News.belongsTo(Category, { foreignKey: 'categoryId' });
+Category.hasMany(News, { foreignKey: 'categoryId' });
+
+Comment.belongsTo(News, { foreignKey: 'newsId' });
+News.hasMany(Comment, { foreignKey: 'newsId' });
+
+const db = {
+  sequelize,
+  Sequelize: sequelize.constructor,
+  Admin,
+  Author,
+  Category,
+  Comment,
+  News
+};
 
 export default db;

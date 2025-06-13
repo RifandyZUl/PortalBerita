@@ -1,17 +1,21 @@
-export const loginAdmin = async (email, password) => {
-  const res = await fetch('http://localhost:5000/api/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
+// src/api/auth.js
+import axios from 'axios';
 
-  const data = await res.json();
+export const loginAdmin = async (emailOrUsername, password) => {
+  try {
+    const response = await axios.post('http://localhost:5000/api/auth/login', {
+      emailOrUsername,
+      password,
+    });
+    return response.data;
+  } catch (err) {
+    console.error('❌ LOGIN ERROR:', err); // 👈 tambahkan log ini
 
-  if (!res.ok) {
-    throw new Error(data.message || 'Login gagal');
+    if (err.response?.data?.message) {
+      throw new Error(err.response.data.message);
+    }
+
+    // Jika tidak ada pesan dari server
+    throw new Error('Login gagal. Silakan coba lagi.');
   }
-
-  return data; // return { token: ... }
 };

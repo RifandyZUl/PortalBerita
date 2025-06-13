@@ -2,22 +2,28 @@ import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
 
 const Admin = sequelize.define('Admin', {
-  name: {
+  adminId: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: 'admin_id'
+  },
+  username: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: false
   },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
+    unique: true
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false,
-  },
+    allowNull: false
+  }
 }, {
   tableName: 'admins',
-  timestamps: false,
+  timestamps: false
 });
 
-export { Admin };
+export default Admin;

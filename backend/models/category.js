@@ -4,10 +4,12 @@ import { sequelize } from '../config/db.js';
 
 const Category = sequelize.define('Category', {
   categoryId: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
+  type: DataTypes.INTEGER,
+  primaryKey: true,
+  autoIncrement: true,
+  field: 'category_id' // wajib match
+}
+,
   name: {
     type: DataTypes.STRING,
     allowNull: false,

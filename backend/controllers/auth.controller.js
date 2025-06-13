@@ -1,50 +1,40 @@
-// Import bcryptjs untuk membandingkan password yang di-hash
 import bcrypt from 'bcryptjs';
-
-// Import jsonwebtoken untuk membuat token autentikasi
 import jwt from 'jsonwebtoken';
+import db from '../models/index.js';
+import { generateToken } from '../utils/token.js';
+import { successResponse, errorResponse } from '../utils/responseHandler.js';
 
-// Import model Admin dari folder models
-import { Admin } from '../models/admin.models.js';
-
-/**
- * Controller untuk proses login admin.
- * Mengecek apakah email dan password cocok, lalu mengirimkan JWT token jika berhasil.
- */
 export const login = async (req, res) => {
-  const { email, password } = req.body; // Ambil email dan password dari request body
+  const { emailOrUsername, password } = req.body;
+
+  if (!emailOrUsername || !password || typeof emailOrUsername !== 'string') {
+    return errorResponse(res, 'Email/username dan password wajib diisi.', null, 400);
+  }
 
   try {
-    // Cari admin berdasarkan email yang dikirimkan
-    const admin = await Admin.findOne({ where: { email } });
+    const admin = await db.Admin.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { email: emailOrUsername },
+          { username: emailOrUsername },
+        ],
+      },
+    });
 
-    // Jika admin tidak ditemukan, kirim respons 401 (unauthorized)
-    if (!admin) return res.status(401).json({ message: 'Email tidak ditemukan' });
+    if (!admin) {
+      return errorResponse(res, 'Email atau username tidak ditemukan.', null, 401);
+    }
 
-    // ✅ Log debugging (optional - boleh dihapus di production)
-    console.log('Email masuk:', email);
-    console.log('Password masuk:', password);
-    console.log('Password di DB:', admin.password);
-
-    // Bandingkan password dari input dengan yang ada di database (yang sudah di-hash)
     const isMatch = await bcrypt.compare(password, admin.password);
-    console.log('Password cocok:', isMatch); // true jika cocok
+    if (!isMatch) {
+      return errorResponse(res, 'Password salah.', null, 401);
+    }
 
-    // Jika password tidak cocok, kirim respons 401
-    if (!isMatch) return res.status(401).json({ message: 'Password salah' });
+    const token = generateToken(admin.adminId);
 
-    // Buat token JWT yang berisi ID admin dan berlaku selama 1 hari
-    const token = jwt.sign(
-      { id: admin.id },               // Payload token
-      process.env.JWT_SECRET,        // Secret key dari .env
-      { expiresIn: '1d' }            // Token berlaku 1 hari
-    );
-
-    // Kirim token sebagai respons jika login berhasil
-    res.status(200).json({ token });
+    return successResponse(res, 'Login berhasil.', { token });
   } catch (err) {
-    // Tangani jika ada error server
-    console.error(err);
-    res.status(500).json({ message: 'Terjadi kesalahan server' });
+    console.error('❌ Login error:', err.message);
+    return errorResponse(res, 'Terjadi kesalahan pada server.', err.message, 500);
   }
 };

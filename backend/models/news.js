@@ -6,15 +6,35 @@ const News = sequelize.define('News', {
   newsId: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
+    field: 'news_id'
   },
-  categoryId: {
+  adminId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'admins',
+      key: 'admin_id'
+    },
+    field: 'admin_id'
   },
   authorId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'authors',
+      key: 'author_id'
+    },
+    field: 'author_id'
+  },
+  categoryId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'categories',
+      key: 'category_id'
+    },
+    field: 'category_id'
   },
   title: {
     type: DataTypes.STRING,
@@ -24,10 +44,12 @@ const News = sequelize.define('News', {
     type: DataTypes.TEXT
   },
   imageUrl: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    field: 'image_url'
   },
   publishedAt: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    field: 'publishedat'
   },
   views: {
     type: DataTypes.INTEGER,
