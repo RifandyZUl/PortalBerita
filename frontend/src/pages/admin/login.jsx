@@ -15,7 +15,13 @@ const Login = () => {
 
     try {
       const data = await loginAdmin(emailOrUsername, password);
-      setToken(data.token);
+      const token = data?.data?.token;
+      if (token) {
+        setToken(token);
+      } else {
+        setError('Token tidak ditemukan.');
+      }
+
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message || 'Terjadi kesalahan saat login.');

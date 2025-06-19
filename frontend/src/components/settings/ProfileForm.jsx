@@ -1,31 +1,51 @@
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
+import PropTypes from 'prop-types';
 
-const ProfileForm = () => {
+const ProfileForm = ({ admin, photo }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors }
-  } = useForm({
-    defaultValues: {
-      firstName: 'Denis',
-      lastName: '',
-      email: 'denis@example.com',
-      username: 'admin123',
-      bio: 'Administrator akun portal berita.'
+  } = useForm();
+
+  // Set default values ketika `admin` berubah
+  useEffect(() => {
+    if (admin) {
+      reset({
+        firstName: admin.firstName || '',
+        lastName: admin.lastName || '',
+        email: admin.email || '',
+        username: admin.username || '',
+        bio: admin.bio || ''
+      });
     }
-  });
+  }, [admin, reset]);
 
   const onSubmit = async (data) => {
+    const formData = new FormData();
+    formData.append('firstName', data.firstName);
+    formData.append('lastName', data.lastName);
+    formData.append('email', data.email);
+    formData.append('username', data.username);
+    formData.append('bio', data.bio);
+    if (photo) formData.append('photo', photo);
+
     try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+      const res = await fetch('http://localhost:5000/api/admin/profile', {
+        method: 'PUT',
+        body: formData,
+        credentials: 'include',
       });
-      const result = await response.json();
-      console.log('Success:', result);
-    } catch (error) {
-      console.error('Error:', error);
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Gagal memperbarui profil');
+      toast.success('Profil berhasil diperbarui!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal memperbarui profil');
     }
   };
 
@@ -42,9 +62,7 @@ const ProfileForm = () => {
             className="border px-3 py-2 w-full"
           />
           {errors.firstName && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.firstName.message}
-            </p>
+            <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>
           )}
         </div>
         <div>
@@ -69,9 +87,7 @@ const ProfileForm = () => {
         })}
         className="border px-3 py-2 w-full"
       />
-      {errors.email && (
-        <p className="text-red-500 text-sm">{errors.email.message}</p>
-      )}
+      {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
 
       <input
         type="text"
@@ -79,9 +95,7 @@ const ProfileForm = () => {
         {...register('username', { required: 'Username is required' })}
         className="border px-3 py-2 w-full"
       />
-      {errors.username && (
-        <p className="text-red-500 text-sm">{errors.username.message}</p>
-      )}
+      {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
 
       <textarea
         placeholder="Bio"
@@ -105,6 +119,11 @@ const ProfileForm = () => {
       </div>
     </form>
   );
+};
+
+ProfileForm.propTypes = {
+  admin: PropTypes.object.isRequired,
+  photo: PropTypes.object
 };
 
 export default ProfileForm;

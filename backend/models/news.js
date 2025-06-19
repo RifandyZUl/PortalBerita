@@ -12,28 +12,16 @@ const News = sequelize.define('News', {
   adminId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: 'admins',
-      key: 'admin_id'
-    },
     field: 'admin_id'
   },
   authorId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: 'authors',
-      key: 'author_id'
-    },
     field: 'author_id'
   },
   categoryId: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: 'categories',
-      key: 'category_id'
-    },
     field: 'category_id'
   },
   title: {

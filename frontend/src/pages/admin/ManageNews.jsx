@@ -1,30 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 import NewsForm from '../../components/ManageNews/NewsForm';
+import ModalConfirm from '../../components/ModalConfirm';
+import { ClipLoader } from 'react-spinners';
 
 const ManageNews = () => {
   const [articles, setArticles] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  const fetchArticles = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/news');
+      setArticles(res.data?.data || []);
+    } catch {
+      toast.error('Gagal memuat artikel.');
+    }
+  };
 
   const handleEdit = (article) => {
     setSelectedArticle(article);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // agar scroll ke form atas saat edit
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this article?');
-    if (confirmDelete) {
-      setArticles((prev) => prev.filter((item) => item.id !== id));
+  const confirmDelete = (id) => {
+    setPendingDeleteId(id);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeletingId(pendingDeleteId);
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/news/${pendingDeleteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setArticles((prev) => prev.filter((item) => item.newsId !== pendingDeleteId));
+      toast.success('Artikel berhasil dihapus.');
+    } catch (error) {
+      console.error('❌ Failed to delete article:', error);
+      toast.error('Gagal menghapus artikel.');
+    } finally {
+      setDeletingId(null);
+      setShowConfirm(false);
+      setPendingDeleteId(null);
     }
   };
 
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-700">Add New Article</h2>
+
       <NewsForm
         selectedArticle={selectedArticle}
         setSelectedArticle={setSelectedArticle}
         articles={articles}
         setArticles={setArticles}
+        onSuccess={fetchArticles}
       />
 
       <h2 className="text-xl font-bold mt-10 mb-4">Manage Articles</h2>
@@ -35,7 +75,7 @@ const ManageNews = () => {
               <th className="py-2 px-4 border-b">Title</th>
               <th className="py-2 px-4 border-b">Category</th>
               <th className="py-2 px-4 border-b">Author</th>
-              <th className="py-2 px-4 border-b">Date</th>
+              <th className="py-2 px-4 border-b">Published</th>
               <th className="py-2 px-4 border-b">Status</th>
               <th className="py-2 px-4 border-b text-center">Actions</th>
             </tr>
@@ -49,25 +89,38 @@ const ManageNews = () => {
               </tr>
             ) : (
               articles.map((article) => (
-                <tr key={article.id} className="text-sm">
+                <tr key={article.newsId} className="text-sm">
                   <td className="py-2 px-4 border-b">{article.title}</td>
-                  <td className="py-2 px-4 border-b">{article.category}</td>
-                  <td className="py-2 px-4 border-b">{article.author}</td>
-                  <td className="py-2 px-4 border-b">{article.date}</td>
-                  <td className="py-2 px-4 border-b">{article.status}</td>
+                  <td className="py-2 px-4 border-b">{article.categoryName}</td>
+                  <td className="py-2 px-4 border-b">{article.authorName}</td>
+                  <td className="py-2 px-4 border-b">
+                    {new Date(article.publishedAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-2 px-4 border-b capitalize">{article.status}</td>
                   <td className="py-2 px-4 border-b flex gap-2 justify-center">
                     <button
-                      onClick={() => handleEdit(article)}
-                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs"
-                    >
-                      Edit
-                    </button>
+                    onClick={() => handleEdit(article)}
+                    disabled={deletingId === article.newsId}
+                    className={`px-3 py-1 rounded text-xs ${
+                      deletingId === article.newsId
+                        ? 'bg-yellow-400 text-white cursor-not-allowed'
+                        : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                    }`}
+                  >
+                    Edit
+                  </button>
+
                     <button
-                      onClick={() => handleDelete(article.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
-                    >
-                      Delete
-                    </button>
+                    onClick={() => confirmDelete(article.newsId)}
+                    disabled={deletingId === article.newsId}
+                    className={`px-3 py-1 rounded text-xs ${
+                      deletingId === article.newsId
+                        ? 'bg-red-400 cursor-not-allowed'
+                        : 'bg-red-500 hover:bg-red-600'
+                    }`}
+                  >
+                    {deletingId === article.newsId ? <ClipLoader size={12} color="#fff" /> : 'Delete'}
+                  </button>
                   </td>
                 </tr>
               ))
@@ -75,6 +128,15 @@ const ManageNews = () => {
           </tbody>
         </table>
       </div>
+
+      <ModalConfirm
+        isOpen={showConfirm}
+        loading={deletingId !== null}
+        title="Konfirmasi Hapus"
+        message="Apakah kamu yakin ingin menghapus artikel ini? Tindakan ini tidak dapat dibatalkan."
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

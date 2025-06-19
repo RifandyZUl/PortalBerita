@@ -15,7 +15,8 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST, // Host database (misalnya: localhost)
     dialect: 'postgres',       // Dialek database yang digunakan
-    logging: process.env.NODE_ENV !== 'production' // Tampilkan SQL query hanya di dev
+    logging: process.env.NODE_ENV === 'development'// 
+    // process.env.NODE_ENV !== 'production'// Tampilkan SQL query hanya di dev
   }
 );
 

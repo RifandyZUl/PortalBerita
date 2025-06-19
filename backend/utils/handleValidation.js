@@ -9,6 +9,9 @@ export const handleValidationErrors = (req, res, next) => {
     message: err.msg
   }));
 
+  // ⬇️ Tambahkan log ini agar muncul di terminal backend
+  console.error('❌ Validation failed:', formattedErrors);
+
   return res.status(400).json({
     status: 'fail',
     errors: formattedErrors

@@ -16,8 +16,26 @@ Author.hasMany(News, { foreignKey: 'authorId' });
 News.belongsTo(Category, { foreignKey: 'categoryId' });
 Category.hasMany(News, { foreignKey: 'categoryId' });
 
-Comment.belongsTo(News, { foreignKey: 'newsId' });
-News.hasMany(Comment, { foreignKey: 'newsId' });
+// Kategori dan subkategori (self relation)
+Category.hasMany(Category, {
+  as: 'subcategories',
+  foreignKey: 'parentId'
+});
+Category.belongsTo(Category, {
+  as: 'parent',
+  foreignKey: 'parentId'
+});
+
+// ✅ Relasi News ⇄ Comment (gunakan alias & mapping field DB)
+Comment.belongsTo(News, {
+  foreignKey: { name: 'newsId', field: 'news_id' },
+  as: 'news',
+});
+
+News.hasMany(Comment, {
+  foreignKey: { name: 'newsId', field: 'news_id' },
+  as: 'comments',
+});
 
 const db = {
   sequelize,

@@ -1,19 +1,20 @@
 import express from 'express';
 import { protect } from '../../middlewares/authMiddleware.js';
-// (Tambahkan controller lain sesuai kebutuhan, misalnya untuk update profil, dll)
+import upload from '../../middlewares/uploadMiddleware.js';
+import { updateProfile } from '../../controllers/admin.controller.js';
+
 
 const router = express.Router();
 
-// Misalnya endpoint untuk dapatkan data admin yang login
 router.get('/profile', protect, (req, res) => {
   res.json({
     message: 'Data admin saat ini',
-    admin: req.admin, // ini akan ada karena middleware `protect` menyisipkan admin ke req
+    admin: req.admin,
   });
 });
 
-// Kamu bisa tambahkan endpoint lain seperti:
-// PUT /api/admin/profile
-// DELETE /api/admin/:id
+// Route untuk update profil + upload gambar ke Cloudinary
+router.put('/profile', protect, upload.single('photo'), updateProfile);
+
 
 export default router;

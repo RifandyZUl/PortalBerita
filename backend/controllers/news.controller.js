@@ -7,19 +7,42 @@ const { News, Author, Category, Admin } = db;
 // GET /api/news
 export const getAllNews = async (req, res) => {
   try {
-    const news = await News.findAll({
-      order: [['newsId', 'DESC']],
+    const news = await db.News.findAll({
+      attributes: ['newsId', 'title', 'status', 'publishedAt'],
       include: [
-        { model: Author, attributes: ['authorId', 'name'] },
-        { model: Category, attributes: ['categoryId', 'name'] },
-        { model: Admin, attributes: ['adminId', 'username'] },
+        {
+          model: db.Author,
+          attributes: ['name'], // ambil hanya nama author
+        },
+        {
+          model: db.Category,
+          attributes: ['name'], // ambil hanya nama kategori
+        },
       ],
+      order: [['newsId', 'DESC']],
     });
 
-    return successResponse(res, 'Berhasil mengambil semua berita.', news);
-  } catch (err) {
-    console.error('❌ Error fetching all news:', err.message);
-    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
+    // Format data agar sesuai frontend
+    const formattedNews = news.map(item => ({
+      newsId: item.newsId,
+      title: item.title,
+      status: item.status,
+      publishedAt: item.publishedAt,
+      authorName: item.Author?.name || '-',     // akses relasi Author
+      categoryName: item.Category?.name || '-', // akses relasi Category
+    }));
+
+    return res.status(200).json({
+      status: 'success',
+      data: formattedNews,
+    });
+
+  } catch (error) {
+    console.error('❌ Error saat mengambil data news:', error);
+    return res.status(500).json({
+      status: 'fail',
+      message: 'Terjadi kesalahan saat mengambil data artikel',
+    });
   }
 };
 
@@ -49,22 +72,31 @@ export const getNewsById = async (req, res) => {
 export const createNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return errorResponse(res, 'Validasi gagal.', errors.array(), 400);
-  }
+  console.log('❌ Validation Errors:', errors.array());
+  return errorResponse(res, 'Validasi gagal.', errors.array(), 400);
+}
 
-  const {
-    title,
-    content,
-    imageUrl,
-    authorId,
-    categoryId,
-    status,
-    publishedAt,
-  } = req.body;
-
-  const adminId = req.admin?.adminId;
 
   try {
+    console.log('📥 req.body:', req.body);
+    console.log('📁 req.file:', req.file);
+
+    const {
+      title,
+      content,
+      authorId,
+      categoryId,
+      status,
+      publishedAt,
+    } = req.body;
+
+    const adminId = req.admin?.adminId;
+    const imageUrl = req.file?.path || req.body.imageUrl;
+
+    if (!imageUrl) {
+      return errorResponse(res, 'Gambar tidak boleh kosong.', null, 400);
+    }
+
     const newNews = await News.create({
       title,
       content,
@@ -81,7 +113,9 @@ export const createNews = async (req, res) => {
     console.error('❌ Error creating news:', err.message);
     return errorResponse(res, 'Gagal membuat berita.', err.message, 500);
   }
+  
 };
+
 
 // PUT /api/news/:id
 export const updateNews = async (req, res) => {
@@ -99,7 +133,6 @@ export const updateNews = async (req, res) => {
     const {
       title,
       content,
-      imageUrl,
       authorId,
       categoryId,
       status,
@@ -107,6 +140,8 @@ export const updateNews = async (req, res) => {
     } = req.body;
 
     const adminId = req.admin?.adminId;
+
+    const imageUrl = req.file?.path || news.imageUrl; // gunakan yang baru jika ada
 
     await news.update({
       title,

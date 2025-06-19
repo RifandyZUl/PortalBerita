@@ -1,6 +1,7 @@
 // models/comment.js
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
+import News from './news.js';
 
 const Comment = sequelize.define('Comment', {
   commentId: {
@@ -10,23 +11,29 @@ const Comment = sequelize.define('Comment', {
   },
   newsId: {
     type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'news_id'
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  email: {
+    type: DataTypes.STRING,
     allowNull: false
   },
   content: {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  status: {
+    type: DataTypes.ENUM('Pending', 'Approved', 'Spam'),
+    defaultValue: 'Pending'
   },
-  isApproved: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  }
 }, {
   tableName: 'comments',
-  timestamps: false
+  timestamps: true, // untuk createdAt & updatedAt otomatis
+  updatedAt: false, // karena kita tidak butuh updatedAt
 });
 
 export default Comment;

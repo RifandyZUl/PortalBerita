@@ -1,46 +1,76 @@
-import { useState } from "react";
-import CommentCard from "@/components/comments/CommentCard";
-import { dummyComments } from "@/data/dummyComments";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import CommentCard from '@/components/comments/CommentCard';
 
 const ManageComments = () => {
-  const [comments, setComments] = useState(dummyComments);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const updateStatus = (id, newStatus) => {
-    setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === id ? { ...comment, status: newStatus } : comment
-      )
-    );
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:5000/api/comments");
+      const data = res?.data?.data?.comments || [];
+      setComments(data);
+    } catch (err) {
+      console.error("Gagal mengambil komentar:", err);
+      toast.error("Gagal memuat komentar.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const updateStatus = async (id, newStatus) => {
+    try {
+      await axios.patch(`http://localhost:5000/api/comments/${id}/status`, { status: newStatus });
+      setComments(prev =>
+        prev.map(comment =>
+          comment.commentId === id ? { ...comment, status: newStatus } : comment
+        )
+      );
+      toast.success('Status komentar diperbarui!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal memperbarui status komentar');
+    }
+  };
+
+  const deleteComment = async (id) => {
+    const confirmDelete = window.confirm('Yakin ingin menghapus komentar ini?');
+    if (!confirmDelete) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/comments/${id}`);
+      setComments(prev => prev.filter(comment => comment.commentId !== id));
+      toast.success('Komentar berhasil dihapus!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Gagal menghapus komentar');
+    }
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, []);
 
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-700">Manage Comments</h2>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h3 className="text-lg font-medium">All Comments</h3>
-        <div className="flex gap-3 mt-2 sm:mt-0">
-          <select className="border px-3 py-2 rounded text-sm">
-            <option>All Status</option>
-            <option>Approved</option>
-            <option>Pending</option>
-            <option>Spam</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search Comments..."
-            className="border px-3 py-2 rounded text-sm w-full sm:w-64"
+      {loading ? (
+        <p className="text-sm text-gray-500">Memuat komentar...</p>
+      ) : comments.length === 0 ? (
+        <p className="text-sm text-gray-500">Belum ada komentar.</p>
+      ) : (
+        comments.map(comment => (
+          <CommentCard
+            key={comment.commentId}
+            comment={comment}
+            onUpdateStatus={updateStatus}
+            onDelete={deleteComment}
           />
-        </div>
-      </div>
-
-      {comments.map((comment) => (
-        <CommentCard
-          key={comment.id}
-          comment={comment}
-          onUpdateStatus={updateStatus}
-        />
-      ))}
+        ))
+      )}
     </div>
   );
 };
