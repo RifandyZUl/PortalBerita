@@ -1,17 +1,10 @@
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 
-const CommentActions = ({ onReply, onEdit, onApprove, onMarkSpam, onDelete }) => {
-  const buttonClass =
-    "text-xs px-3 py-1 rounded border transition-colors hover:bg-gray-100";
+const CommentActions = ({ onApprove, onMarkSpam, onDelete }) => {
+  const buttonClass = 'text-xs px-3 py-1 rounded border transition-colors hover:bg-gray-100';
 
   return (
     <div className="flex items-center flex-wrap gap-2">
-      <button className={buttonClass} onClick={onReply}>
-        Reply
-      </button>
-      <button className={buttonClass} onClick={onEdit}>
-        Edit
-      </button>
       <button className={buttonClass} onClick={onApprove}>
         Approve
       </button>
@@ -29,8 +22,6 @@ const CommentActions = ({ onReply, onEdit, onApprove, onMarkSpam, onDelete }) =>
 };
 
 CommentActions.propTypes = {
-  onReply: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
   onApprove: PropTypes.func.isRequired,
   onMarkSpam: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,

@@ -29,7 +29,8 @@
     "pg-hstore": "^2.3.4",
     "react-hot-toast": "^2.5.2",
     "sequelize": "^6.37.7",
-    "sequelize-cli": "^6.6.3"
+    "sequelize-cli": "^6.6.3",
+    "sharp": "^0.34.2"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",

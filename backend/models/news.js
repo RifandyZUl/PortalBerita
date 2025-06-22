@@ -46,7 +46,12 @@ const News = sequelize.define('News', {
   status: {
     type: DataTypes.ENUM('draft', 'published', 'archived'),
     allowNull: false
-  }
+  },
+  summary: {
+  type: DataTypes.TEXT,
+  allowNull: true,
+}
+
 }, {
   tableName: 'news',
   timestamps: false

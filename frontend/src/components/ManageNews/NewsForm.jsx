@@ -1,5 +1,8 @@
+// src/components/NewsForm.jsx
 import React, { useEffect, useState } from 'react';
 import TextEditor from '../RichTextEditor';
+import ModalConfirm from '../ModalConfirm';
+import ModalPreview from '../ModalPreview';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { ClipLoader } from 'react-spinners';
@@ -21,9 +24,11 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingDropdown, setLoadingDropdown] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDropdownData = async () => {
       try {
         const [authorRes, categoryRes] = await Promise.all([
           axios.get('http://localhost:5000/api/authors'),
@@ -37,7 +42,7 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
         setLoadingDropdown(false);
       }
     };
-    fetchData();
+    fetchDropdownData();
   }, []);
 
   useEffect(() => {
@@ -66,19 +71,10 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFormData((prev) => ({ ...prev, image: file }));
-    if (file) {
-      setPreviewImage(URL.createObjectURL(file));
-    }
+    if (file) setPreviewImage(URL.createObjectURL(file));
   };
 
-  const handleCancelEdit = () => {
-    setSelectedArticle(null);
-    setFormData(initialFormState);
-    setPreviewImage(null);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
 
     const payload = new FormData();
@@ -94,14 +90,14 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
       payload.append('imageUrl', selectedArticle.imageUrl);
     }
 
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    };
-
     try {
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      };
+
       let response;
       if (selectedArticle) {
         response = await axios.put(
@@ -126,24 +122,23 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
       setSelectedArticle(null);
       onSuccess?.();
     } catch (error) {
-      if (error.response?.data?.errors) {
-        const msg = error.response.data.errors
-          .map((e) => `${e.field}: ${e.message}`)
-          .join('\n');
+      const errors = error.response?.data?.errors;
+      if (errors) {
+        const msg = errors.map((e) => `${e.field}: ${e.message}`).join('\n');
         toast.error(`Validasi gagal:\n${msg}`);
       } else {
         toast.error('Terjadi kesalahan saat menyimpan artikel');
-        console.error('❌ Submit error:', error);
+        console.error('Submit error:', error);
       }
     } finally {
       setLoading(false);
+      setShowConfirm(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 border rounded-lg shadow">
+    <form onSubmit={(e) => e.preventDefault()} className="space-y-6 bg-white p-6 border rounded-lg shadow">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Title */}
         <div>
           <label className="block mb-1 font-medium">Article Title</label>
           <input
@@ -155,8 +150,6 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             className="w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
-
-        {/* Category */}
         <div>
           <label className="block mb-1 font-medium">Category</label>
           <select
@@ -164,25 +157,17 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             value={formData.categoryId}
             onChange={handleChange}
             required
-            className="w-full rounded-md border px-3 py-2 text-sm"
             disabled={loadingDropdown}
+            className="w-full rounded-md border px-3 py-2 text-sm"
           >
-            {loadingDropdown ? (
-              <option value="">Loading...</option>
-            ) : (
-              <>
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.categoryId} value={cat.categoryId}>
-                    {cat.name}
-                  </option>
-                ))}
-              </>
-            )}
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat.categoryId} value={cat.categoryId}>
+                {cat.name}
+              </option>
+            ))}
           </select>
         </div>
-
-        {/* Author */}
         <div>
           <label className="block mb-1 font-medium">Author</label>
           <select
@@ -190,25 +175,17 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             value={formData.authorId}
             onChange={handleChange}
             required
-            className="w-full rounded-md border px-3 py-2 text-sm"
             disabled={loadingDropdown}
+            className="w-full rounded-md border px-3 py-2 text-sm"
           >
-            {loadingDropdown ? (
-              <option value="">Loading...</option>
-            ) : (
-              <>
-                <option value="">Select Author</option>
-                {authors.map((author) => (
-                  <option key={author.authorId} value={author.authorId}>
-                    {author.name}
-                  </option>
-                ))}
-              </>
-            )}
+            <option value="">Select Author</option>
+            {authors.map((author) => (
+              <option key={author.authorId} value={author.authorId}>
+                {author.name}
+              </option>
+            ))}
           </select>
         </div>
-
-        {/* Date */}
         <div>
           <label className="block mb-1 font-medium">Published Date</label>
           <input
@@ -220,8 +197,6 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             className="w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
-
-        {/* Status */}
         <div>
           <label className="block mb-1 font-medium">Status</label>
           <select
@@ -237,8 +212,6 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             <option value="archived">Archived</option>
           </select>
         </div>
-
-        {/* Image */}
         <div className="md:col-span-2">
           <label className="block mb-1 font-medium">Upload Image</label>
           <input
@@ -252,13 +225,12 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             <img
               src={previewImage}
               alt="Preview"
-              className="mt-2 h-40 object-cover rounded"
+              className="mt-2 max-h-[250px] object-contain rounded border"
             />
           )}
         </div>
       </div>
 
-      {/* Content */}
       <div>
         <label className="block mb-1 font-medium">Article Content</label>
         <div className="border border-gray-300 rounded-md">
@@ -269,21 +241,32 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
         </div>
       </div>
 
-      {/* Submit */}
       <div className="flex items-center gap-3 pt-2">
         <button
-        type="submit"
-        disabled={loading}
-        className={`px-4 py-2 text-sm rounded text-white ${
-          loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-        }`}
-      >
-        {loading ? <ClipLoader size={20} color="#fff" /> : selectedArticle ? 'Update Article' : 'Add Article'}
-      </button>
+          type="button"
+          onClick={() => setShowPreview(true)}
+          className="px-4 py-2 text-sm rounded border border-gray-400 text-gray-700 hover:bg-gray-100"
+        >
+          Preview
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowConfirm(true)}
+          disabled={loading}
+          className={`px-4 py-2 text-sm rounded text-white ${
+            loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {loading ? <ClipLoader size={20} color="#fff" /> : selectedArticle ? 'Update Article' : 'Add Article'}
+        </button>
         {selectedArticle && (
           <button
             type="button"
-            onClick={handleCancelEdit}
+            onClick={() => {
+              setFormData(initialFormState);
+              setSelectedArticle(null);
+              setPreviewImage(null);
+            }}
             className="text-gray-600 hover:underline text-sm"
             disabled={loading}
           >
@@ -291,6 +274,39 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
           </button>
         )}
       </div>
+
+     {/* Modal Preview */}
+      {!loadingDropdown && (
+        <ModalPreview
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          data={{
+            title: formData.title,
+            content: formData.content,
+            image: previewImage,
+            categoryName:
+              categories.find((c) => c.categoryId === parseInt(formData.categoryId))?.name ||
+              'Tanpa Kategori',
+            authorName:
+              authors.find((a) => a.authorId === parseInt(formData.authorId))?.name ||
+              'Tanpa Penulis',
+            publishedAt: formData.publishedAt || 'Belum ditentukan',
+          }}
+        />
+      )}
+
+
+      {/* Modal Confirm */}
+    <ModalConfirm
+      isOpen={showConfirm}
+      onCancel={() => setShowConfirm(false)}
+      onConfirm={handleSubmit}
+      loading={loading}
+      title="Konfirmasi Simpan Artikel"
+      message="Apakah Anda yakin ingin menyimpan artikel ini?"
+      confirmText={selectedArticle ? 'Update' : 'Simpan'}
+    />
+
     </form>
   );
 };

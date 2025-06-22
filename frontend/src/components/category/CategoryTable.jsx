@@ -1,3 +1,4 @@
+// src/components/category/CategoryTable.jsx
 import React, { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
@@ -51,44 +52,44 @@ const CategoryTable = ({ categories, onEdit, onDelete }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredCategories.map((category) => {
-              const IconComponent = iconMap[category.icon];
-              return (
-                <tr key={category.categoryId} className="border-t">
-                  <td className="px-4 py-3">
-                    {IconComponent ? (
-                      <IconComponent className="w-5 h-5 text-gray-600" />
-                    ) : (
-                      <span className="text-gray-400 italic">None</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{category.name}</td>
-                  <td className="px-4 py-3">{category.slug}</td>
-                  <td className="px-4 py-3 space-x-3">
-                    <button
-                      onClick={() => onEdit(category)}
-                      className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                      aria-label={`Edit ${category.name}`}
-                      title={`Edit ${category.name}`}
-                    >
-                      <Pencil size={16} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => onDelete(category.categoryId)}
-                      className="text-red-600 hover:underline inline-flex items-center gap-1"
-                      aria-label={`Delete ${category.name}`}
-                      title={`Delete ${category.name}`}
-                    >
-                      <Trash2 size={16} />
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-
-            {filteredCategories.length === 0 && (
+            {filteredCategories.length > 0 ? (
+              filteredCategories.map((category) => {
+                const IconComponent = iconMap[category.icon];
+                return (
+                  <tr key={category.categoryId} className="border-t">
+                    <td className="px-4 py-3">
+                      {IconComponent ? (
+                        <IconComponent className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <span className="text-gray-400 italic">None</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">{category.name}</td>
+                    <td className="px-4 py-3">{category.slug}</td>
+                    <td className="px-4 py-3 space-x-3">
+                      <button
+                        onClick={() => onEdit(category)}
+                        className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                        aria-label={`Edit ${category.name}`}
+                        title={`Edit ${category.name}`}
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => onDelete(category.categoryId)}
+                        className="text-red-600 hover:underline inline-flex items-center gap-1"
+                        aria-label={`Delete ${category.name}`}
+                        title={`Delete ${category.name}`}
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
               <tr>
                 <td colSpan={4} className="text-center text-gray-500 py-4">
                   No categories found.

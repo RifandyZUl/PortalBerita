@@ -4,49 +4,76 @@ import { successResponse, errorResponse } from '../utils/responseHandler.js';
 
 const { News, Author, Category, Admin } = db;
 
-// GET /api/news
+// Fungsi untuk membersihkan HTML
+const stripHtml = (html) => {
+  return html?.replace(/<[^>]*>/g, '') || '';
+};
+
+// GET all news
 export const getAllNews = async (req, res) => {
   try {
-    const news = await db.News.findAll({
-      attributes: ['newsId', 'title', 'status', 'publishedAt'],
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'publishedAt',
+      order = 'DESC',
+      status,
+      categoryId,
+    } = req.query;
+
+    const validSortFields = ['title', 'publishedAt', 'status'];
+    const validOrderValues = ['ASC', 'DESC'];
+
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    // Validasi nilai sort dan order
+    const sortField = validSortFields.includes(sort) ? sort : 'publishedAt';
+    const sortOrder = validOrderValues.includes(order.toUpperCase()) ? order.toUpperCase() : 'DESC';
+
+    // Bangun kondisi WHERE
+    const where = {};
+    if (status) where.status = status;
+    if (categoryId) where.categoryId = categoryId;
+
+    const { count, rows } = await News.findAndCountAll({
+      where,
+      offset,
+      limit: parseInt(limit),
+      order: [[sortField, sortOrder]],
       include: [
-        {
-          model: db.Author,
-          attributes: ['name'], // ambil hanya nama author
-        },
-        {
-          model: db.Category,
-          attributes: ['name'], // ambil hanya nama kategori
-        },
+        { model: Author, attributes: ['name'] },
+        { model: Category, attributes: ['name'] },
       ],
-      order: [['newsId', 'DESC']],
     });
 
-    // Format data agar sesuai frontend
-    const formattedNews = news.map(item => ({
+    const formattedNews = rows.map(item => ({
       newsId: item.newsId,
       title: item.title,
       status: item.status,
       publishedAt: item.publishedAt,
-      authorName: item.Author?.name || '-',     // akses relasi Author
-      categoryName: item.Category?.name || '-', // akses relasi Category
+      authorName: item.Author?.name || '-',
+      categoryName: item.Category?.name || '-',
     }));
 
-    return res.status(200).json({
-      status: 'success',
-      data: formattedNews,
+    return successResponse(res, 'Berhasil mengambil semua berita.', {
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      articles: formattedNews,
     });
-
-  } catch (error) {
-    console.error('❌ Error saat mengambil data news:', error);
-    return res.status(500).json({
-      status: 'fail',
-      message: 'Terjadi kesalahan saat mengambil data artikel',
-    });
+  } catch (err) {
+    console.error('❌ Error saat mengambil data news:', err);
+    return errorResponse(
+      res,
+      'Terjadi kesalahan saat mengambil data artikel',
+      err.message,
+      500
+    );
   }
 };
 
-// GET /api/news/:id
+
+// GET news by ID
 export const getNewsById = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id, {
@@ -68,19 +95,14 @@ export const getNewsById = async (req, res) => {
   }
 };
 
-// POST /api/news
+// POST create news
 export const createNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-  console.log('❌ Validation Errors:', errors.array());
-  return errorResponse(res, 'Validasi gagal.', errors.array(), 400);
-}
-
+    return errorResponse(res, 'Validasi gagal.', errors.array(), 400);
+  }
 
   try {
-    console.log('📥 req.body:', req.body);
-    console.log('📁 req.file:', req.file);
-
     const {
       title,
       content,
@@ -97,9 +119,12 @@ export const createNews = async (req, res) => {
       return errorResponse(res, 'Gambar tidak boleh kosong.', null, 400);
     }
 
+    const summary = stripHtml(content).substring(0, 200); // Buat summary dari content
+
     const newNews = await News.create({
       title,
       content,
+      summary,
       imageUrl,
       authorId,
       categoryId,
@@ -113,11 +138,9 @@ export const createNews = async (req, res) => {
     console.error('❌ Error creating news:', err.message);
     return errorResponse(res, 'Gagal membuat berita.', err.message, 500);
   }
-  
 };
 
-
-// PUT /api/news/:id
+// PUT update news
 export const updateNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -140,12 +163,14 @@ export const updateNews = async (req, res) => {
     } = req.body;
 
     const adminId = req.admin?.adminId;
+    const imageUrl = req.file?.path || news.imageUrl;
 
-    const imageUrl = req.file?.path || news.imageUrl; // gunakan yang baru jika ada
+    const summary = stripHtml(content).substring(0, 200); // Update summary juga
 
     await news.update({
       title,
       content,
+      summary,
       imageUrl,
       authorId,
       categoryId,
@@ -161,7 +186,7 @@ export const updateNews = async (req, res) => {
   }
 };
 
-// DELETE /api/news/:id
+// DELETE news
 export const deleteNews = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id);

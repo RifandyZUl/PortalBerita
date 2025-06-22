@@ -8,6 +8,7 @@ const ModalConfirm = ({
   onConfirm,
   isOpen,
   loading,
+  confirmText = 'Hapus', // default
 }) => {
   if (!isOpen) return null;
 
@@ -28,12 +29,10 @@ const ModalConfirm = ({
             onClick={onConfirm}
             disabled={loading}
             className={`px-4 py-2 text-sm text-white rounded ${
-              loading
-                ? 'bg-red-400 cursor-not-allowed'
-                : 'bg-red-600 hover:bg-red-700'
+              loading ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
             }`}
           >
-            {loading ? 'Menghapus...' : 'Hapus'}
+            {loading ? 'Menyimpan...' : confirmText}
           </button>
         </div>
       </div>

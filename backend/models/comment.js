@@ -1,7 +1,7 @@
 // models/comment.js
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
-import News from './news.js';
+import News from './News.js';
 
 const Comment = sequelize.define('Comment', {
   commentId: {

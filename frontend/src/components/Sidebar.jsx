@@ -1,24 +1,27 @@
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Newspaper,
-  MessageSquare,
-  Settings
-} from 'lucide-react';
+import { X, LayoutDashboard, Newspaper, MessageSquare, Settings } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ onClose }) => {
   const links = [
-  { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
-  { name: 'Manage News', path: '/admin/manage-news', icon: <Newspaper size={18} /> },
-  { name: 'Manage Categories', path: '/admin/manage-categories', icon: <Newspaper size={18} /> },
-  { name: 'Manage Comments', path: '/admin/manage-comments', icon: <MessageSquare size={18} /> },
-  { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} /> }
-];
-
+    { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} /> },
+    { name: 'Manage News', path: '/admin/manage-news', icon: <Newspaper size={18} /> },
+    { name: 'Manage Categories', path: '/admin/manage-categories', icon: <Newspaper size={18} /> },
+    { name: 'Manage Comments', path: '/admin/manage-comments', icon: <MessageSquare size={18} /> },
+    { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} /> }
+  ];
 
   return (
-    <aside className="w-64 bg-blue-600 text-white p-6">
-      <h2 className="text-2xl font-bold mb-8">Admin Panel</h2>
+    <aside>
+      {/* Tombol close muncul hanya di mobile */}
+      <div className="flex items-center justify-between mb-6 lg:hidden">
+        <h2 className="text-2xl font-bold">Admin Panel</h2>
+        <button onClick={onClose}>
+          <X className="w-6 h-6 text-white" />
+        </button>
+      </div>
+
+      <h2 className="text-2xl font-bold mb-8 hidden lg:block">Admin Panel</h2>
+
       <nav className="space-y-3">
         {links.map((link) => (
           <NavLink

@@ -25,29 +25,33 @@ const ProfileForm = ({ admin, photo }) => {
   }, [admin, reset]);
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('username', data.username);
-    formData.append('bio', data.bio);
-    if (photo) formData.append('photo', photo);
+  const formData = new FormData();
+  formData.append('firstName', data.firstName);
+  formData.append('lastName', data.lastName);
+  formData.append('email', data.email);
+  formData.append('username', data.username);
+  formData.append('bio', data.bio);
+  if (photo) formData.append('photo', photo);
 
-    try {
-      const res = await fetch('http://localhost:5000/api/admin/profile', {
-        method: 'PUT',
-        body: formData,
-        credentials: 'include',
-      });
+  try {
+    const token = localStorage.getItem('token'); // ⬅️ AMBIL TOKEN
+    const res = await fetch('http://localhost:5000/api/admin/profile', {
+      method: 'PUT',
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}` // ⬅️ KIRIMKAN TOKEN KE BACKEND
+      },
+    });
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || 'Gagal memperbarui profil');
-      toast.success('Profil berhasil diperbarui!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Gagal memperbarui profil');
-    }
-  };
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal memperbarui profil');
+    toast.success('Profil berhasil diperbarui!');
+  } catch (err) {
+    console.error(err);
+    toast.error('Gagal memperbarui profil');
+  }
+};
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
