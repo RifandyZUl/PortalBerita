@@ -1,6 +1,5 @@
 // tailwind.config.js
-import typography from '@tailwindcss/typography'
-import lineClamp from '@tailwindcss/line-clamp'
+import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -10,14 +9,18 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: '#2563EB',       // biru utama
+        secondary: '#1E40AF',     // biru gelap
+        light: '#E0F2FE',         // biru muda
+        dark: '#0F172A',          // hitam kebiruan untuk bg
+      },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],
-        roboto: ['Roboto', 'sans-serif'],
       },
     },
   },
   plugins: [
     typography,
-    lineClamp,
   ],
-}
+};

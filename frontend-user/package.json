@@ -24,6 +24,7 @@
     "axios": "^1.9.0",
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
+    "dompurify": "^3.2.6",
     "framer-motion": "^12.18.1",
     "lucide-react": "^0.511.0",
     "path": "^0.12.7",
@@ -36,6 +37,7 @@
     "react-router-dom": "^7.6.1",
     "react-spinners": "^0.17.0",
     "react-toastify": "^11.0.5",
+    "tailwind-scrollbar-hide": "^4.0.0",
     "tiptap-extension-font-size": "^1.2.0",
     "yup": "^1.6.1"
   },

@@ -5,7 +5,7 @@ import cors from 'cors';
 // Import Routes
 import authRoutes from './routes/auth.routes.js';
 import adminRoutes from './routes/admin/admin.routes.js';
-import dashboardRoutes from './routes/admin/dashboard.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 import newsRoutes from './routes/news.routes.js';
 import authorRoutes from './routes/author.routes.js';
 import categoryRoutes from './routes/category.routes.js';
