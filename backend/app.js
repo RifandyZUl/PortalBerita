@@ -1,4 +1,3 @@
-// app.js
 import express from 'express';
 import cors from 'cors';
 
@@ -14,15 +13,25 @@ import commentRoutes from './routes/comments.routes.js';
 const app = express();
 
 // ===== MIDDLEWARE ===== //
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logger untuk development
+// Logger (dev only)
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
     console.log(`[${req.method}] ${req.originalUrl}`);
@@ -33,7 +42,7 @@ if (process.env.NODE_ENV !== 'production') {
 // ===== ROUTES ===== //
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/authors', authorRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -41,13 +50,13 @@ app.use('/api/comments', commentRoutes);
 
 // ===== 404 Handler ===== //
 app.use((req, res) => {
-  return res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: 'Route not found' });
 });
 
 // ===== Global Error Handler ===== //
 app.use((err, req, res, next) => {
   console.error('❌ Unhandled error:', err);
-  return res.status(500).json({
+  res.status(500).json({
     message: 'Something went wrong',
     error: process.env.NODE_ENV !== 'production' ? err.message : undefined,
   });

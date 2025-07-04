@@ -156,8 +156,9 @@ const ManageNews = () => {
                   articles.map((article) => (
                     <tr key={article.newsId} className="text-sm">
                       <td className="py-2 px-4 border-b">{article.title}</td>
-                      <td className="py-2 px-4 border-b">{article.categoryName}</td>
-                      <td className="py-2 px-4 border-b">{article.authorName}</td>
+                      <td className="py-2 px-4 border-b">{article.Category?.name || '-'}</td>
+                      <td className="py-2 px-4 border-b">{article.Author?.name || '-'}</td>
+
                       <td className="py-2 px-4 border-b">
                         {new Date(article.publishedAt).toLocaleDateString()}
                       </td>

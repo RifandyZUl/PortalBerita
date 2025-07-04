@@ -1,11 +1,11 @@
-// routes/newsRoutes.js
 import express from 'express';
 import {
   createNews,
   getAllNews,
   getNewsById,
   updateNews,
-  deleteNews
+  deleteNews,
+  getPublishedNews // 
 } from '../controllers/news.controller.js';
 
 import { protect } from '../middlewares/authMiddleware.js';
@@ -15,18 +15,28 @@ import upload from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
+// Route publik (untuk user)
+router.get('/public/list', getPublishedNews);
+
+// Route umum/admin
 router.get('/', getAllNews);
 router.get('/:id', getNewsById);
 router.post(
   '/',
   protect,
-  upload.single('image'), // ⬅️ ini harus duluan
+  upload.single('image'),
   validateNews,
   handleValidationErrors,
   createNews
 );
-
-router.put('/:id', protect, upload.single('image'), validateNews, handleValidationErrors, updateNews);
+router.put(
+  '/:id',
+  protect,
+  upload.single('image'),
+  validateNews,
+  handleValidationErrors,
+  updateNews
+);
 router.delete('/:id', protect, deleteNews);
 
 export default router;

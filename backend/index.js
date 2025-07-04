@@ -14,13 +14,17 @@ async function startServer() {
     await db.sequelize.authenticate();
     console.log('✅ PostgreSQL connected');
 
+    const shouldAlter = process.env.SEQUELIZE_ALTER === 'true';
+
     await Promise.all([
-      db.Admin.sync({ alter: true }),
-      db.Author.sync({ alter: true }),
-      db.Category.sync({ alter: true }),
-      db.News.sync({ alter: true }),
-      db.Comment.sync({ alter: true }),
+      db.Admin.sync({ alter: shouldAlter }),
+      db.Author.sync({ alter: shouldAlter }),
+      db.Category.sync({ alter: shouldAlter }),
+      db.News.sync({ alter: shouldAlter }),
+      db.Comment.sync({ alter: shouldAlter }),
     ]);
+
+    console.log('✅ Semua tabel disinkronisasi dengan database');
 
     app.listen(PORT, () => {
       console.log(`✅ Server running at http://localhost:${PORT}`);
@@ -30,5 +34,15 @@ async function startServer() {
     process.exit(1);
   }
 }
+
+// Handler error global
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  process.exit(1);
+});
 
 startServer();

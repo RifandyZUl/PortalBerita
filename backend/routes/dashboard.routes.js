@@ -10,15 +10,14 @@ import {
 
 const router = express.Router();
 
-router.get('/dashboard', protect, (req, res) => {
+router.get('/', protect, (req, res) => {
   res.json({ message: `Halo admin dengan ID ${req.admin.adminId}, ini adalah halaman dashboard.` });
 });
 
-router.get('/dashboard/stats', protect, getDashboardStats);
-router.get('/dashboard/articles', protect, getRecentArticles); // for dashboard (limit 5)
-router.get('/dashboard/comments', protect, getRecentComments); // for dashboard (limit 5)
-
-router.get('/dashboard/articles/all', protect, getAllArticlesPaginated); // for View All with pagination
-router.get('/dashboard/comments/all', protect, getAllCommentsPaginated); // for View All with pagination
+router.get('/stats', protect, getDashboardStats);
+router.get('/articles', protect, getRecentArticles);
+router.get('/comments', protect, getRecentComments);
+router.get('/articles/all', protect, getAllArticlesPaginated);
+router.get('/comments/all', protect, getAllCommentsPaginated);
 
 export default router;

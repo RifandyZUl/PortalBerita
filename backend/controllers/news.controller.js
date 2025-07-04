@@ -9,7 +9,7 @@ const stripHtml = (html) => {
   return html?.replace(/<[^>]*>/g, '') || '';
 };
 
-// GET all news
+// ✅ GET all news (admin & user)
 export const getAllNews = async (req, res) => {
   try {
     const {
@@ -21,66 +21,50 @@ export const getAllNews = async (req, res) => {
       categoryId,
     } = req.query;
 
-    const validSortFields = ['title', 'publishedAt', 'status'];
-    const validOrderValues = ['ASC', 'DESC'];
-
     const offset = (parseInt(page) - 1) * parseInt(limit);
-
-    // Validasi nilai sort dan order
-    const sortField = validSortFields.includes(sort) ? sort : 'publishedAt';
-    const sortOrder = validOrderValues.includes(order.toUpperCase()) ? order.toUpperCase() : 'DESC';
-
-    // Bangun kondisi WHERE
     const where = {};
-    if (status) where.status = status;
+
+    const isAdmin = !!req.admin;
+    if (isAdmin) {
+      if (status) where.status = status;
+    } else {
+      where.status = 'published';
+    }
+
     if (categoryId) where.categoryId = categoryId;
 
     const { count, rows } = await News.findAndCountAll({
       where,
       offset,
       limit: parseInt(limit),
-      order: [[sortField, sortOrder]],
+      order: [[sort, order.toUpperCase()]],
       include: [
-        { model: Author, attributes: ['name'] },
-        { model: Category, attributes: ['name'] },
+        { model: Category, attributes: ['name'], as: 'Category' },
+        { model: Author, attributes: ['name'], as: 'Author' },
+        { model: Admin, attributes: ['username'], as: 'Admin' },
       ],
     });
 
-    const formattedNews = rows.map(item => ({
-      newsId: item.newsId,
-      title: item.title,
-      status: item.status,
-      publishedAt: item.publishedAt,
-      authorName: item.Author?.name || '-',
-      categoryName: item.Category?.name || '-',
-    }));
-
-    return successResponse(res, 'Berhasil mengambil semua berita.', {
+    return successResponse(res, 'Berhasil mengambil data berita.', {
       total: count,
       page: parseInt(page),
       limit: parseInt(limit),
-      articles: formattedNews,
+      articles: rows,
     });
   } catch (err) {
     console.error('❌ Error saat mengambil data news:', err);
-    return errorResponse(
-      res,
-      'Terjadi kesalahan saat mengambil data artikel',
-      err.message,
-      500
-    );
+    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
 
-
-// GET news by ID
+// ✅ GET news by ID
 export const getNewsById = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id, {
       include: [
-        { model: Author, attributes: ['authorId', 'name'] },
-        { model: Category, attributes: ['categoryId', 'name'] },
-        { model: Admin, attributes: ['adminId', 'username'] },
+        { model: Author, attributes: ['authorId', 'name'], as: 'Author' },
+        { model: Category, attributes: ['categoryId', 'name'], as: 'Category' },
+        { model: Admin, attributes: ['adminId', 'username'], as: 'Admin' },
       ],
     });
 
@@ -95,7 +79,7 @@ export const getNewsById = async (req, res) => {
   }
 };
 
-// POST create news
+// ✅ POST create news
 export const createNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -119,7 +103,7 @@ export const createNews = async (req, res) => {
       return errorResponse(res, 'Gambar tidak boleh kosong.', null, 400);
     }
 
-    const summary = stripHtml(content).substring(0, 200); // Buat summary dari content
+    const summary = stripHtml(content).substring(0, 200);
 
     const newNews = await News.create({
       title,
@@ -140,7 +124,7 @@ export const createNews = async (req, res) => {
   }
 };
 
-// PUT update news
+// ✅ PUT update news
 export const updateNews = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -165,7 +149,7 @@ export const updateNews = async (req, res) => {
     const adminId = req.admin?.adminId;
     const imageUrl = req.file?.path || news.imageUrl;
 
-    const summary = stripHtml(content).substring(0, 200); // Update summary juga
+    const summary = stripHtml(content).substring(0, 200);
 
     await news.update({
       title,
@@ -186,7 +170,7 @@ export const updateNews = async (req, res) => {
   }
 };
 
-// DELETE news
+// ✅ DELETE news
 export const deleteNews = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id);
@@ -199,5 +183,42 @@ export const deleteNews = async (req, res) => {
   } catch (err) {
     console.error('❌ Error deleting news:', err.message);
     return errorResponse(res, 'Gagal menghapus berita.', err.message, 500);
+  }
+};
+
+// ✅ GET Published News (User only)
+export const getPublishedNews = async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const where = { status: 'published' };
+    if (category) where['$Category.name$'] = category;
+
+    const news = await News.findAll({
+      where,
+      order: [['publishedAt', 'DESC']],
+      include: [
+        { model: Category, attributes: ['name'], as: 'Category' },
+      ],
+      limit: 10,
+    });
+
+    const formatted = news.map((n) => ({
+      id: n.newsId,
+      title: n.title,
+      summary: n.summary,
+      image_url: n.imageUrl,
+      category: n.Category?.name || '-',
+      createdAt: n.publishedAt,
+      slug: n.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, ''),
+    }));
+
+    return successResponse(res, 'Berhasil mengambil berita untuk user.', formatted);
+  } catch (err) {
+    console.error('❌ Error berita user:', err);
+    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };

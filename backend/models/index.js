@@ -7,14 +7,18 @@ import Comment from './comment.js';
 import News from './News.js';
 
 // Relasi
-News.belongsTo(Admin, { foreignKey: 'adminId' });
-Admin.hasMany(News, { foreignKey: 'adminId' });
+// Relasi News ⇄ Category
+News.belongsTo(Category, { foreignKey: 'categoryId', as: 'Category' });
+Category.hasMany(News, { foreignKey: 'categoryId', as: 'NewsList' });
 
-News.belongsTo(Author, { foreignKey: 'authorId' });
-Author.hasMany(News, { foreignKey: 'authorId' });
+// Relasi News ⇄ Author
+News.belongsTo(Author, { foreignKey: 'authorId', as: 'Author' });
+Author.hasMany(News, { foreignKey: 'authorId', as: 'NewsList' });
 
-News.belongsTo(Category, { foreignKey: 'categoryId' });
-Category.hasMany(News, { foreignKey: 'categoryId' });
+// Relasi News ⇄ Admin (kalau dipakai di frontend juga)
+News.belongsTo(Admin, { foreignKey: 'adminId', as: 'Admin' });
+Admin.hasMany(News, { foreignKey: 'adminId', as: 'NewsList' });
+
 
 // Kategori dan subkategori (self relation)
 Category.hasMany(Category, {

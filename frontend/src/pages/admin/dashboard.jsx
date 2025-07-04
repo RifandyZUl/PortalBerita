@@ -34,7 +34,15 @@ const categoryColorMap = {
   politik: 'bg-yellow-100 text-yellow-600',
   kesehatan: 'bg-green-100 text-green-600',
   ekonomi: 'bg-purple-100 text-purple-600',
+  teknologi: 'bg-gray-100 text-gray-600',
+  nasional: 'bg-red-100 text-red-600',
+  hiburan: 'bg-pink-500 text-pink-100',
+  internasional: 'bg-orange-100 text-orange-600',
+  otomotif: 'bg-teal-100 text-teal-600',
 };
+
+
+
 
 const Dashboard = () => {
   const [stats, setStats] = useState({});
@@ -50,13 +58,13 @@ const Dashboard = () => {
   const [commentTotalPages, setCommentTotalPages] = useState(1);
 
   const fetchStats = async (headers) => {
-    const res = await fetch('http://localhost:5000/api/admin/dashboard/stats', { headers });
+    const res = await fetch('http://localhost:5000/api/dashboard/stats', { headers });
     const data = await res.json();
     if (res.ok) setStats(data.data || {});
   };
 
   const fetchArticles = async (headers, page = 1, limit = 5) => {
-    const res = await fetch(`http://localhost:5000/api/admin/dashboard/articles?page=${page}&limit=${limit}`, { headers });
+    const res = await fetch(`http://localhost:5000/api/dashboard/articles?page=${page}&limit=${limit}`, { headers });
     const data = await res.json();
     if (res.ok) {
       setArticles(data.data?.articles || []);
@@ -65,7 +73,7 @@ const Dashboard = () => {
   };
 
   const fetchComments = async (headers, page = 1, limit = 5) => {
-    const res = await fetch(`http://localhost:5000/api/admin/dashboard/comments?page=${page}&limit=${limit}`, { headers });
+    const res = await fetch(`http://localhost:5000/api/dashboard/comments?page=${page}&limit=${limit}`, { headers });
     const data = await res.json();
     if (res.ok) {
       setComments(data.data?.comments || []);

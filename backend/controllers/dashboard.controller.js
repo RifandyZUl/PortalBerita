@@ -10,11 +10,18 @@ export const getDashboardStats = async (req, res) => {
     const totalNews = await News.count();
     const totalComments = await Comment.count();
     const totalViews = await News.sum('views') || 0;
+
+    console.log('🔍 Debug totalNews:', totalNews);
+    console.log('🔍 Debug totalComments:', totalComments);
+    console.log('🔍 Debug totalViews:', totalViews);
+
     return successResponse(res, 'Sukses', { totalNews, totalComments, totalViews });
   } catch (err) {
+    console.error('❌ Error getDashboardStats:', err.message); // lebih tepat di sini
     return errorResponse(res, 'Gagal ambil stats', err.message);
   }
 };
+
 
 export const getRecentArticles = async (req, res) => {
   try {
