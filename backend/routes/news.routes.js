@@ -5,7 +5,11 @@ import {
   getNewsById,
   updateNews,
   deleteNews,
-  getPublishedNews // 
+  getPublishedNews,
+  getPublicNewsBySlug,
+  searchNewsByKeyword,
+  incrementViews,
+  getPopularNews
 } from '../controllers/news.controller.js';
 
 import { protect } from '../middlewares/authMiddleware.js';
@@ -15,12 +19,15 @@ import upload from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
-// Route publik (untuk user)
-router.get('/public/list', getPublishedNews);
+// ======= PUBLIC ROUTES ======= //
+router.get('/public/list', getPublishedNews);         // Homepage user
+router.get('/public/detail/:slug', getPublicNewsBySlug); // Detail berita
+router.get('/search', searchNewsByKeyword);           // Fitur pencarian
+router.get('/popular', getPopularNews);       // Berita populer 
+router.patch('/:id/views', incrementViews);     // Tambah views otomatis 
 
-// Route umum/admin
-router.get('/', getAllNews);
-router.get('/:id', getNewsById);
+// ======= ADMIN ROUTES ======= //
+router.get('/', protect, getAllNews);
 router.post(
   '/',
   protect,
@@ -38,5 +45,6 @@ router.put(
   updateNews
 );
 router.delete('/:id', protect, deleteNews);
+router.get('/:id', protect, getNewsById); // ← sebaiknya dilindungi juga
 
 export default router;

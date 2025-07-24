@@ -1,7 +1,7 @@
 // models/comment.js
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/db.js';
-import News from './News.js';
+import News from './news.js';
 
 const Comment = sequelize.define('Comment', {
   commentId: {
@@ -22,7 +22,7 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  content: {
+  comment: {
     type: DataTypes.TEXT,
     allowNull: false
   },

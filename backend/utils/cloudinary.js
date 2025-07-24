@@ -10,8 +10,11 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: 'portal-berita', // bisa ganti nama folder
+    folder: 'portal-berita',
     allowed_formats: ['jpg', 'png'],
+    transformation: [
+      { width: 800, height: 450, crop: 'fill', gravity: 'auto' }, // Landscape 16:9
+    ],
   },
 });
 

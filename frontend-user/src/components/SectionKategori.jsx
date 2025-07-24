@@ -16,7 +16,7 @@ const SectionKategori = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/news/public/list');
+        const res = await fetch('/api/news/public/list');
         const data = await res.json();
         setNewsData(data.data || []);
       } catch (err) {
@@ -42,7 +42,7 @@ const SectionKategori = () => {
       <div>
         <SectionTitle text="Hiburan" />
         <div className="flex flex-col gap-6 mt-6">
-          {entertainmentNews.map((news) => (
+          {entertainmentNews.slice(0, 10).map((news) => (
             <Link
               key={news.slug}
               to={`/news/${news.slug}`}
@@ -73,7 +73,7 @@ const SectionKategori = () => {
       <div>
         <SectionTitle text="Teknologi" />
         <div className="flex flex-col gap-6 mt-6">
-          {techNews.map((news) => (
+          {techNews.slice(0, 10).map((news) => (
             <Link
               key={news.slug}
               to={`/news/${news.slug}`}

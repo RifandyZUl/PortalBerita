@@ -189,8 +189,8 @@ const Dashboard = () => {
                     </div>
                     <p className="text-xs text-gray-600 line-clamp-1">{stripHtml(art.content)}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColorMap[art.categoryName?.toLowerCase()] || 'bg-gray-100 text-gray-600'}`}>
-                        {art.categoryName || 'Uncategorized'}
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColorMap[art.Category?.name?.toLowerCase()] || 'bg-gray-100 text-gray-600'}`}>
+                        {art.Category?.name || 'Uncategorized'}
                       </span>
                       <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {art.views ?? 0}</span>
                       <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> {art.commentsCount ?? 0}</span>

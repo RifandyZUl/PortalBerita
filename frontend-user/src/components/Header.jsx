@@ -4,8 +4,8 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 
 const navItems = [
-  'Home', 'Nasional', 'Internasional', 'Ekonomi',
-  'Olahraga', 'Teknologi', 'Otomotif', 'Hiburan', 'Gaya Hidup'
+  'Home', 'Nasional', 'International', 'Ekonomi',
+  'Olahraga', 'Teknologi', 'Otomotif', 'Hiburan', 'Kesehatan'
 ];
 
 const Header = () => {

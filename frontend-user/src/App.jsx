@@ -13,6 +13,7 @@ const App = () => {
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/news/:slug" element={<NewsDetail />} />
+          <Route path="/berita/:slug" element={<NewsDetail />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
 

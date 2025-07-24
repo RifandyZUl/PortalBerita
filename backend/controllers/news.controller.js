@@ -1,15 +1,16 @@
 import { validationResult } from 'express-validator';
 import db from '../models/index.js';
 import { successResponse, errorResponse } from '../utils/responseHandler.js';
+import sanitizeHtml from 'sanitize-html';
+import slugify from 'slugify';
+import { Op } from 'sequelize';
 
 const { News, Author, Category, Admin } = db;
 
-// Fungsi untuk membersihkan HTML
-const stripHtml = (html) => {
-  return html?.replace(/<[^>]*>/g, '') || '';
-};
+// Utility to strip HTML
+const stripHtml = (html) => html?.replace(/<[^>]*>/g, '') || '';
 
-// ✅ GET all news (admin & user)
+// ✅ GET all news (Admin + User with Role Check)
 export const getAllNews = async (req, res) => {
   try {
     const {
@@ -25,8 +26,8 @@ export const getAllNews = async (req, res) => {
     const where = {};
 
     const isAdmin = !!req.admin;
-    if (isAdmin) {
-      if (status) where.status = status;
+    if (isAdmin && status) {
+      where.status = status;
     } else {
       where.status = 'published';
     }
@@ -40,24 +41,98 @@ export const getAllNews = async (req, res) => {
       order: [[sort, order.toUpperCase()]],
       include: [
         { model: Category, attributes: ['name'], as: 'Category' },
-        { model: Author, attributes: ['name'], as: 'Author' },
         { model: Admin, attributes: ['username'], as: 'Admin' },
+        { model: Author, attributes: ['name'], as: 'Author' },
       ],
     });
+
+    const mappedArticles = rows.map(news => ({
+      ...news.toJSON(),
+      categoryName: news.Category?.name || 'Uncategorized',
+      authorName: news.Author?.name || 'Unknown',
+    }));
 
     return successResponse(res, 'Berhasil mengambil data berita.', {
       total: count,
       page: parseInt(page),
       limit: parseInt(limit),
-      articles: rows,
+      articles: mappedArticles,
     });
   } catch (err) {
-    console.error('❌ Error saat mengambil data news:', err);
+    console.error('❌ Error getAllNews:', err);
     return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
 
-// ✅ GET news by ID
+// ✅ GET published news for public
+export const getPublishedNews = async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const where = { status: 'published' };
+    if (category) where['$Category.name$'] = category;
+
+    const news = await News.findAll({
+      where,
+      order: [['publishedAt', 'DESC']],
+      include: [
+        { model: Category, attributes: ['name'], as: 'Category', required: true },
+      ],
+      limit: 10,
+    });
+
+    const formatted = news.map((n) => ({
+      id: n.newsId,
+      title: n.title,
+      summary: n.summary,
+      content: n.content,
+      image_url: n.imageUrl,
+      category: n.Category?.name || '-',
+      createdAt: n.publishedAt,
+      slug: n.slug,
+    }));
+
+    return successResponse(res, 'Berhasil mengambil berita untuk user.', formatted);
+  } catch (err) {
+    console.error('❌ Error getPublishedNews:', err);
+    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
+  }
+};
+
+// ✅ GET public detail by slug
+export const getPublicNewsBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const news = await News.findOne({
+      where: { status: 'published', slug },
+      include: [
+        { model: Category, attributes: ['name'], as: 'Category' },
+        { model: Author, attributes: ['name'], as: 'Author' },
+      ],
+    });
+
+    if (!news) {
+      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
+    }
+
+    return successResponse(res, 'Berhasil mengambil berita detail.', {
+      id: news.newsId,
+      title: news.title,
+      content: news.content,
+      summary: news.summary,
+      image_url: news.imageUrl,
+      category: news.Category?.name || '-',
+      createdAt: news.publishedAt,
+      slug: news.slug,
+    });
+  } catch (err) {
+    console.error('❌ Error getPublicNewsBySlug:', err);
+    return errorResponse(res, 'Gagal mengambil detail berita.', err.message, 500);
+  }
+};
+
+// ✅ GET news by ID (admin use)
 export const getNewsById = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id, {
@@ -74,7 +149,7 @@ export const getNewsById = async (req, res) => {
 
     return successResponse(res, 'Berhasil mengambil detail berita.', news);
   } catch (err) {
-    console.error('❌ Error fetching news by ID:', err.message);
+    console.error('❌ Error getNewsById:', err);
     return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
@@ -103,11 +178,27 @@ export const createNews = async (req, res) => {
       return errorResponse(res, 'Gambar tidak boleh kosong.', null, 400);
     }
 
-    const summary = stripHtml(content).substring(0, 200);
+    const sanitizedContent = sanitizeHtml(content, {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2']),
+      allowedAttributes: {
+        '*': ['style', 'class'],
+        a: ['href', 'target'],
+        img: ['src', 'alt', 'width', 'height'],
+      },
+    });
+
+    const summary = stripHtml(sanitizedContent).substring(0, 200);
+    const slug = slugify(title, { lower: true, strict: true });
+
+    const existing = await News.findOne({ where: { slug } });
+    if (existing) {
+      return errorResponse(res, 'Slug sudah digunakan, ubah judul.', null, 400);
+    }
 
     const newNews = await News.create({
       title,
-      content,
+      slug,
+      content: sanitizedContent,
       summary,
       imageUrl,
       authorId,
@@ -119,7 +210,7 @@ export const createNews = async (req, res) => {
 
     return successResponse(res, 'Berita berhasil dibuat.', newNews, 201);
   } catch (err) {
-    console.error('❌ Error creating news:', err.message);
+    console.error('❌ Error createNews:', err);
     return errorResponse(res, 'Gagal membuat berita.', err.message, 500);
   }
 };
@@ -133,9 +224,7 @@ export const updateNews = async (req, res) => {
 
   try {
     const news = await News.findByPk(req.params.id);
-    if (!news) {
-      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
-    }
+    if (!news) return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
 
     const {
       title,
@@ -149,11 +238,22 @@ export const updateNews = async (req, res) => {
     const adminId = req.admin?.adminId;
     const imageUrl = req.file?.path || news.imageUrl;
 
-    const summary = stripHtml(content).substring(0, 200);
+    const sanitizedContent = sanitizeHtml(content, {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2']),
+      allowedAttributes: {
+        '*': ['style', 'class'],
+        a: ['href', 'target'],
+        img: ['src', 'alt', 'width', 'height'],
+      },
+    });
+
+    const summary = stripHtml(sanitizedContent).substring(0, 200);
+    const slug = slugify(title, { lower: true, strict: true });
 
     await news.update({
       title,
-      content,
+      slug,
+      content: sanitizedContent,
       summary,
       imageUrl,
       authorId,
@@ -165,7 +265,7 @@ export const updateNews = async (req, res) => {
 
     return successResponse(res, 'Berita berhasil diperbarui.', news);
   } catch (err) {
-    console.error('❌ Error updating news:', err.message);
+    console.error('❌ Error updateNews:', err);
     return errorResponse(res, 'Gagal memperbarui berita.', err.message, 500);
   }
 };
@@ -174,33 +274,60 @@ export const updateNews = async (req, res) => {
 export const deleteNews = async (req, res) => {
   try {
     const news = await News.findByPk(req.params.id);
-    if (!news) {
-      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
-    }
+    if (!news) return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
 
     await news.destroy();
     return successResponse(res, 'Berita berhasil dihapus.');
   } catch (err) {
-    console.error('❌ Error deleting news:', err.message);
+    console.error('❌ Error deleteNews:', err);
     return errorResponse(res, 'Gagal menghapus berita.', err.message, 500);
   }
 };
 
-// ✅ GET Published News (User only)
-export const getPublishedNews = async (req, res) => {
+// ✅ Search news by keyword
+export const searchNewsByKeyword = async (req, res) => {
+  const { keyword } = req.query;
+
+  if (!keyword || keyword.trim().length < 2) {
+    return errorResponse(res, 'Masukkan kata kunci minimal 2 huruf.', null, 400);
+  }
+
   try {
-    const { category } = req.query;
-
-    const where = { status: 'published' };
-    if (category) where['$Category.name$'] = category;
-
     const news = await News.findAll({
-      where,
-      order: [['publishedAt', 'DESC']],
+      where: {
+        status: 'published',
+        [Op.or]: [
+          { title: { [Op.iLike]: `%${keyword}%` } },
+          { content: { [Op.iLike]: `%${keyword}%` } },
+        ],
+      },
+      order: [['createdAt', 'DESC']],
+      limit: 10,
       include: [
         { model: Category, attributes: ['name'], as: 'Category' },
+        { model: Author, attributes: ['name'], as: 'Author' },
       ],
-      limit: 10,
+    });
+
+    return successResponse(res, 'Hasil pencarian ditemukan.', news);
+  } catch (error) {
+    console.error('❌ Error searchNewsByKeyword:', error);
+    return errorResponse(res, 'Gagal mencari berita.', error.message, 500);
+  }
+};
+
+
+// ✅ GET popular news (by most views)
+export const getPopularNews = async (req, res) => {
+  try {
+    const news = await News.findAll({
+      where: { status: 'published' },
+      order: [['views', 'DESC']],
+      limit: 5,
+      include: [
+        { model: Author, attributes: ['name'], as: 'Author' },
+        { model: Category, attributes: ['name'], as: 'Category' },
+      ],
     });
 
     const formatted = news.map((n) => ({
@@ -210,15 +337,34 @@ export const getPublishedNews = async (req, res) => {
       image_url: n.imageUrl,
       category: n.Category?.name || '-',
       createdAt: n.publishedAt,
-      slug: n.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, ''),
+      slug: n.slug,
+      views: n.views,
+      authorName: n.Author?.name || 'Unknown',
     }));
 
-    return successResponse(res, 'Berhasil mengambil berita untuk user.', formatted);
-  } catch (err) {
-    console.error('❌ Error berita user:', err);
-    return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
+    return successResponse(res, 'Berhasil mengambil berita populer.', formatted);
+  } catch (error) {
+    console.error('❌ Error getPopularNews:', error);
+    return errorResponse(res, 'Gagal mengambil berita populer.', error.message, 500);
+  }
+};
+
+// ✅ PATCH - Tambah views
+export const incrementViews = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const news = await News.findByPk(id);
+
+    if (!news) {
+      return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
+    }
+
+    news.views += 1;
+    await news.save();
+
+    return successResponse(res, 'Jumlah views berhasil ditambahkan.', { views: news.views });
+  } catch (error) {
+    console.error('❌ Gagal menambahkan views:', error);
+    return errorResponse(res, 'Gagal menambahkan views.', error.message, 500);
   }
 };

@@ -35,6 +35,11 @@ const News = sequelize.define('News', {
     type: DataTypes.STRING,
     field: 'image_url'
   },
+    slug: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
   publishedAt: {
     type: DataTypes.DATE,
     field: 'publishedat'
@@ -54,7 +59,7 @@ const News = sequelize.define('News', {
 
 }, {
   tableName: 'news',
-  timestamps: false
+  timestamps: true
 });
 
 export default News;

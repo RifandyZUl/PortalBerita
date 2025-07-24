@@ -1,47 +1,45 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-
-const dummyNews = [
-  {
-    id: 1,
-    title: 'Pengacara Ceritakan Momen Jokowi Jawab 22 Pertanyaan di Bareskrim',
-    excerpt: 'Presiden ke-7 RI Joko Widodo (Jokowi) telah dimintai klarifikasi oleh penyidik Bareskrim Polri terkait kasus tudingan ijazah palsu...',
-    category: 'Nasional',
-    publishedAt: '2025-05-21',
-    imageUrl: 'https://tse4.mm.bing.net/th?id=OIP.bgvMu8vQcELlufCQPSZivgHaEK&pid=Api&P=0&h=220',
-    popularity: 90,
-  },
-  {
-    id: 2,
-    title: 'Bitcoin Jatuh: Apa Penyebab dan Dampaknya?',
-    excerpt: 'Harga bitcoin kembali anjlok akibat kekhawatiran terhadap kebijakan moneter AS...',
-    category: 'Ekonomi',
-    publishedAt: '2025-06-24',
-    imageUrl: 'https://tse4.mm.bing.net/th?id=OIP.bgvMu8vQcELlufCQPSZivgHaEK&pid=Api&P=0&h=220',
-    popularity: 120,
-  },
-  // Tambahkan dummy lainnya...
-];
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
 
 const SearchPage = () => {
   const [sort, setSort] = useState('Relevansi');
   const [dateFilter, setDateFilter] = useState('');
+  const [newsList, setNewsList] = useState([]);
+  const [searchParams] = useSearchParams();
+  const keyword = searchParams.get('query') || '';
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await axios.get(`/api/news/search?keyword=${keyword}`);
+        setNewsList(res.data.data);
+      } catch (err) {
+        console.error('Gagal mengambil berita:', err);
+      }
+    };
+
+    if (keyword) {
+      fetchNews();
+    }
+  }, [keyword]);
 
   // Filter berdasarkan tanggal
   const filteredByDate = dateFilter
-    ? dummyNews.filter((item) => item.publishedAt === dateFilter)
-    : dummyNews;
+    ? newsList.filter((item) => item.publishedAt.startsWith(dateFilter))
+    : newsList;
 
   // Sortir berdasarkan pilihan
   const sortedNews = [...filteredByDate].sort((a, b) => {
     if (sort === 'Popular') return b.popularity - a.popularity;
-    return a.id - b.id; // Default relevansi (dummy: urutan id)
+    if (sort === 'Terbaru') return new Date(b.publishedAt) - new Date(a.publishedAt);
+    return a.id - b.id; // Relevansi dummy (bisa diganti logika relevansi backend)
   });
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 text-gray-800">
       <h2 className="text-xl font-semibold mb-4">
-        Hasil Pencarian <span className="italic text-black">“Jokowi”</span>
+        Hasil Pencarian <span className="italic text-black">“{keyword}”</span>
       </h2>
 
       {/* FILTER */}
@@ -67,7 +65,7 @@ const SearchPage = () => {
       {/* HASIL PENCARIAN */}
       <div className="space-y-10">
         {sortedNews.map((news) => (
-          <div key={news.id} className="flex flex-col md:flex-row gap-6 border-b pb-6">
+          <div key={news.newsId} className="flex flex-col md:flex-row gap-6 border-b pb-6">
             <img
               src={news.imageUrl}
               onError={(e) => (e.target.src = '/fallback.jpg')}
@@ -77,7 +75,7 @@ const SearchPage = () => {
 
             <div className="flex-1">
               <Link
-                to={`/news/${news.id}`}
+                to={`/news/${news.slug}`}
                 className="text-lg font-semibold hover:text-blue-700 transition"
               >
                 {news.title}

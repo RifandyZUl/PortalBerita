@@ -31,7 +31,7 @@ export const getRecentArticles = async (req, res) => {
 
     const { rows: articles, count } = await News.findAndCountAll({
       attributes: ['newsId', 'title', 'content', 'views', 'publishedAt'],
-      include: [{ model: Category, attributes: ['name'] }],
+      include: [{ model: Category, attributes: ['name'], as: 'Category' }],
       order: [['publishedAt', 'DESC']],
       limit,
       offset,
@@ -94,7 +94,7 @@ export const getAllArticlesPaginated = async (req, res) => {
 
     const { count, rows } = await News.findAndCountAll({
       attributes: ['newsId', 'title', 'content', 'views', 'publishedAt'],
-      include: [{ model: Category, attributes: ['name'] }],
+      include: [{ model: Category, attributes: ['name'], as: 'Category' }],
       order: [['publishedAt', 'DESC']],
       limit,
       offset

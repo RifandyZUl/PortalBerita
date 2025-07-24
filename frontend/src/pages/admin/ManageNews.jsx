@@ -27,7 +27,11 @@ const ManageNews = () => {
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
+     const token = localStorage.getItem('token');
       const res = await axios.get('http://localhost:5000/api/news', {
+        headers: {
+          Authorization: `Bearer ${token}`, // ⬅️ PENTING
+        },
         params: {
           page,
           limit,
@@ -37,14 +41,10 @@ const ManageNews = () => {
         },
       });
 
-      const result = res.data?.data;
-      if (Array.isArray(result)) {
-        setArticles(result);
-        setTotalItems(result.length);
-      } else {
-        setArticles(result?.articles || []);
-        setTotalItems(result?.total || 0);
-      }
+
+      const result = res.data?.data || {};
+      setArticles(result.articles || []);
+      setTotalItems(result.total || 0);
     } catch {
       toast.error('Gagal memuat artikel.');
     } finally {
@@ -87,7 +87,6 @@ const ManageNews = () => {
 
   const totalPages = Math.ceil(totalItems / limit);
 
-  // Saat first load kosong
   if (loading && articles.length === 0) {
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -129,7 +128,6 @@ const ManageNews = () => {
           </div>
         </div>
 
-        {/* Tabel */}
         {loading ? (
           <SkeletonNewsTable />
         ) : (
@@ -158,10 +156,7 @@ const ManageNews = () => {
                       <td className="py-2 px-4 border-b">{article.title}</td>
                       <td className="py-2 px-4 border-b">{article.Category?.name || '-'}</td>
                       <td className="py-2 px-4 border-b">{article.Author?.name || '-'}</td>
-
-                      <td className="py-2 px-4 border-b">
-                        {new Date(article.publishedAt).toLocaleDateString()}
-                      </td>
+                      <td className="py-2 px-4 border-b">{new Date(article.publishedAt).toLocaleDateString()}</td>
                       <td className="py-2 px-4 border-b capitalize">{article.status}</td>
                       <td className="py-2 px-4 border-b flex gap-2 justify-center">
                         <button
@@ -191,7 +186,6 @@ const ManageNews = () => {
           </div>
         )}
 
-        {/* Pagination */}
         <div className="flex justify-between items-center mt-4">
           <span className="text-sm text-gray-600">
             Page {page} of {totalPages || 1}

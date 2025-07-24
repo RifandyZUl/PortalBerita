@@ -4,7 +4,7 @@ import Admin from './admin.js';
 import Author from './author.js';
 import Category from './category.js';
 import Comment from './comment.js';
-import News from './News.js';
+import News from './news.js';
 
 // Relasi
 // Relasi News ⇄ Category

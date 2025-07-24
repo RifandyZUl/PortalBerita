@@ -1,77 +1,206 @@
-import { useEffect, useState } from 'react';
-import DOMPurify from 'dompurify';
-
-const dummyNews = {
-  title: 'Harga Bitcoin Anjlok di Tengah Kekhawatiran Resesi AS',
-  publishedAt: '2025-06-25',
-  author: 'Admin Winnicode',
-  imageUrl: 'https://tse4.mm.bing.net/th?id=OIP.bgvMu8vQcELlufCQPSZivgHaEK&pid=Api&P=0&h=220',
-  content: `
-    <p>Harga kripto bitcoin dan ethereum anjlok ke posisi terendah selama beberapa hari terakhir.</p>
-    <h2>Penurunan Signifikan</h2>
-    <ul>
-      <li>Bitcoin turun lebih dari 10% dalam 24 jam.</li>
-      <li>Total kapitalisasi pasar kripto merosot di bawah $1 triliun.</li>
-      <li>Ethereum dan Solana ikut anjlok 15%.</li>
-    </ul>
-    <p>Investor khawatir terhadap resesi ekonomi di AS.</p>
-  `,
-};
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { getResizedImage } from '../../utils/imageTransform';
 
 const NewsDetail = () => {
-  const [sanitizedContent, setSanitizedContent] = useState('');
+  const { slug } = useParams();
+  const [news, setNews] = useState(null);
+   const [hasAddedView, setHasAddedView] = useState(false); // 🔥
+  const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState([]);
+  const [form, setForm] = useState({ name: '', email: '', comment: '' });
+  const [submitting, setSubmitting] = useState(false);
 
+  // Ambil detail berita
   useEffect(() => {
-    const cleanHTML = DOMPurify.sanitize(dummyNews.content);
-    setSanitizedContent(cleanHTML);
-  }, []);
+    const fetchNewsDetail = async () => {
+      try {
+        const response = await axios.get(`/api/news/public/detail/${slug}`);
+        setNews(response.data.data);
+      } catch (error) {
+        console.error('❌ Gagal mengambil detail berita:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNewsDetail();
+  }, [slug]);
+
+  // Tambahkan views setelah data berita berhasil diambil
+  useEffect(() => {
+    const addView = async () => {
+      if (news?.id && !hasAddedView) {
+        console.log('🟢 Menambahkan views ke newsId:', news.id);
+        try {
+          const res = await axios.patch(`/api/news/${news.id}/views`);
+          console.log('✅ PATCH response:', res.data);
+
+          // Tambah views secara lokal
+          setNews((prev) => ({ ...prev, views: prev.views + 1 }));
+
+          // 🔐 tandai bahwa views sudah ditambahkan
+          setHasAddedView(true);
+        } catch (error) {
+          console.error('❌ Gagal menambahkan views:', error);
+        }
+      }
+    };
+
+    addView();
+  }, [news?.id, hasAddedView]); // ⛔ supaya nggak infinite loop
+
+  // Ambil komentar
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await axios.get(`/api/comments/public/${slug}`);
+        setComments(response.data || []);
+      } catch (error) {
+        console.error('❌ Gagal mengambil komentar:', error);
+      }
+    };
+    fetchComments();
+  }, [slug]);
+
+  // Ganti title halaman
+  useEffect(() => {
+    const defaultTitle = 'Portal Berita';
+    if (news) {
+      document.title = `${news.title} | ${defaultTitle}`;
+    }
+    return () => {
+      document.title = defaultTitle;
+    };
+  }, [news]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.comment) return;
+
+    try {
+      setSubmitting(true);
+      await axios.post(`/api/comments/${news.id}`, form);
+      setForm({ name: '', email: '', comment: '' });
+
+      const updated = await axios.get(`/api/comments/public/${slug}`);
+      setComments(updated.data || []);
+    } catch (error) {
+      console.error('❌ Gagal mengirim komentar:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <div className="p-4">Memuat detail berita...</div>;
+  if (!news) return <div className="p-4 text-red-500">Berita tidak ditemukan.</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 text-gray-800">
-      <h1 className="text-3xl font-bold mb-2">{dummyNews.title}</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        {dummyNews.publishedAt} | {dummyNews.author}
+    <div className="p-4 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">{news.title}</h1>
+      <p className="text-sm text-gray-500 mb-4">
+        {news.category} |{' '}
+        {new Date(news.createdAt).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })}{' '}
+        | {news.views} views
       </p>
 
-      <img
-        src={dummyNews.imageUrl}
-        alt={dummyNews.title}
-        onError={(e) => e.currentTarget.src = '/images/placeholder.jpg'}
-        className="max-w-2xl w-full h-auto object-contain mx-auto rounded-md mb-6"
-      />
+      <div className="w-full max-w-2xl mx-auto aspect-[16/9] mb-4 rounded overflow-hidden bg-gray-100">
+        <img
+          src={getResizedImage(news.image_url) || '/placeholder.jpg'}
+          alt={news.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
 
       <div
-        className="prose prose-base max-w-none text-justify"
-        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        className="prose prose-lg max-w-none text-justify text-gray-800 mt-6"
+        dangerouslySetInnerHTML={{ __html: news.content }}
       />
 
-      {/* Komentar (dummy UI) */}
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold mb-4">Leave a Comment</h2>
-        <form className="space-y-4">
+      {/* Form Komentar */}
+      <div className="mt-10 border-t pt-6">
+        <h2 className="text-xl font-semibold mb-4">Tinggalkan Komentar</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Nama"
-            className="w-full px-4 py-2 rounded border border-gray-300 text-sm focus:outline-none"
+            name="name"
+            placeholder="Nama Anda"
+            className="w-full border px-3 py-2 rounded"
+            value={form.name}
+            onChange={handleChange}
+            required
           />
           <input
             type="email"
-            placeholder="Email"
-            className="w-full px-4 py-2 rounded border border-gray-300 text-sm focus:outline-none"
+            name="email"
+            placeholder="Email Anda"
+            className="w-full border px-3 py-2 rounded"
+            value={form.email}
+            onChange={handleChange}
+            required
           />
           <textarea
-            placeholder="Message..."
+            name="comment"
+            placeholder="Tulis komentar Anda..."
+            className="w-full border px-3 py-2 rounded"
             rows="4"
-            className="w-full px-4 py-2 rounded border border-gray-300 text-sm focus:outline-none"
-          />
+            value={form.comment}
+            onChange={handleChange}
+            required
+          ></textarea>
           <button
             type="submit"
-            className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition"
+            disabled={submitting}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            Post Comment
+            {submitting ? 'Mengirim...' : 'Kirim Komentar'}
           </button>
         </form>
-      </section>
+      </div>
+
+      {/* Daftar Komentar */}
+      <div className="mt-10">
+        <h3 className="text-xl font-semibold mb-5 text-gray-800">
+          Komentar ({comments.length})
+        </h3>
+        {comments.length === 0 ? (
+          <p className="text-gray-500 italic">Belum ada komentar.</p>
+        ) : (
+          <ul className="space-y-6">
+            {comments.map((comment) => (
+              <li
+                key={comment.commentId}
+                className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex gap-4"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm uppercase">
+                  {comment.name?.charAt(0)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-medium text-gray-800">{comment.name}</p>
+                    <span className="text-xs text-gray-400">
+                      {new Date(comment.createdAt).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-gray-700">{comment.comment}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
