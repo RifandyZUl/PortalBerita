@@ -1,41 +1,34 @@
-import { cloudinary } from '../utils/cloudinary.js';
 import Admin from '../models/admin.js';
 
 export const updateProfile = async (req, res) => {
   try {
-    const adminId = req.user?.adminId || 1; // ganti sesuai implementasi autentikasi kamu
+    const adminId = req.admin.adminId;
 
+    // Ambil data admin dari database
     const admin = await Admin.findByPk(adminId);
     if (!admin) {
-      return res.status(404).json({ success: false, message: 'Admin tidak ditemukan.' });
+      return res.status(404).json({ message: 'Admin tidak ditemukan' });
     }
 
-    const { firstName, lastName, email, username, bio } = req.body;
+    // Ambil data dari body
+    const { firstName, lastName, bio } = req.body;
 
-    // Jika ada file yang di-upload, ambil URL dari Cloudinary
-    let photoUrl = admin.photo;
-    // admin.controller.js
-    if (req.file?.path) {
-    photoUrl = req.file.path; // otomatis URL dari Cloudinary
+    // Cek apakah ada file gambar yang diupload
+    if (req.file && req.file.path) {
+      admin.photo = req.file.path; // Cloudinary URL
     }
 
-    await admin.update({
-    firstName,
-    lastName,
-    email,
-    username,
-    bio,
-    photo: photoUrl, // ⬅ sesuai nama kolom yang ada
-    });
+    // Update data lainnya
+    admin.firstName = firstName || admin.firstName;
+    admin.lastName = lastName || admin.lastName;
+    admin.bio = bio || admin.bio;
 
+    // Simpan perubahan
+    await admin.save();
 
-    res.json({
-      success: true,
-      message: 'Profil berhasil diperbarui.',
-      data: admin,
-    });
-  } catch (err) {
-    console.error('Update profile error:', err);
-    res.status(500).json({ success: false, message: 'Gagal memperbarui profil.' });
+    return res.json({ message: 'Profil berhasil diperbarui', admin });
+  } catch (error) {
+    console.error('Gagal update profil:', error);
+    return res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };

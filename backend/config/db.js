@@ -5,7 +5,8 @@ import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
 // Load environment variables dari file .env ke dalam process.env
-dotenv.config();
+const envFilePath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: envFilePath });
 
 // Membuat instance Sequelize dengan konfigurasi dari environment variables
 const sequelize = new Sequelize(

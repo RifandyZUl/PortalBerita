@@ -5,6 +5,7 @@ import HomePage from '@/pages/HomePage';
 import NewsDetail from './pages/NewsDetail';
 import SearchPage from '@/pages/SearchPage';
 import CategoryPage from './pages/CategoryPage';
+import NotFound from './pages/NotFound';
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
           <Route path="/category/:slug" element={<CategoryPage />} />
 
         </Route>
+          <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

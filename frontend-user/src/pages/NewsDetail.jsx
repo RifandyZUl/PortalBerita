@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { getResizedImage } from '../../utils/imageTransform';
+import SkeletonLoader from '@/components/SkeletonLoader';
 
 const NewsDetail = () => {
   const { slug } = useParams();
@@ -96,7 +97,13 @@ const NewsDetail = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Memuat detail berita...</div>;
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <SkeletonLoader />
+      </div>
+    );
+  }
   if (!news) return <div className="p-4 text-red-500">Berita tidak ditemukan.</div>;
 
   return (

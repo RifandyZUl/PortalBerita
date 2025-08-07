@@ -33,5 +33,5 @@ npm install
 npm run dev
 
 🔐 Login Default Admin
-Username: Admin Satu 
+Username: admin_super 
 Password: admin12345

@@ -1,6 +1,6 @@
 const SectionTitle = ({ text }) => {
   return (
-    <div className="inline-block bg-black text-white px-4 py-1 mb-4 font-semibold text-sm sm:text-base">
+    <div className="inline-block border-b-2 border-blue-600 pb-1 text-lg font-semibold text-gray-900 mb-4">
       {text}
     </div>
   );

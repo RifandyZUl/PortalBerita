@@ -11,9 +11,10 @@ const getAutoIcon = (name = '') => {
   if (lowerName.includes('ekonomi')) return 'bar-chart-2';
   if (lowerName.includes('olahraga')) return 'heart';
   if (lowerName.includes('teknologi')) return 'settings';
+  if (lowerName.includes('otomotif')) return 'settings';
   if (lowerName.includes('hiburan')) return 'grid';
   if (lowerName.includes('kesehatan')) return 'plus';
-  if (lowerName.includes('internasional') || lowerName.includes('international')) return 'globe';
+  if (lowerName.includes('international') || lowerName.includes('international')) return 'globe';
 
   return 'grid'; // default icon
 };
@@ -21,8 +22,9 @@ const getAutoIcon = (name = '') => {
 // ✅ GET all categories with pagination
 export const getAllCategories = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
     const offset = (page - 1) * limit;
 
     const { count, rows } = await Category.findAndCountAll({

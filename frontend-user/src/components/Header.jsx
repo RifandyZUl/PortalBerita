@@ -1,110 +1,121 @@
-// src/components/Header.jsx
 import { useState } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
+import logo from '../assets/logo/image2.png';
 
-const navItems = [
-  'Home', 'Nasional', 'International', 'Ekonomi',
-  'Olahraga', 'Teknologi', 'Otomotif', 'Hiburan', 'Kesehatan'
+const navLinks = [
+  "Home", "Nasional", "International", "Ekonomi",
+  "Olahraga", "Teknologi", "Otomotif", "Hiburan", "Kesehatan"
 ];
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearchSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     if (searchValue.trim()) {
       navigate(`/search?query=${encodeURIComponent(searchValue.trim())}`);
       setSearchValue('');
-      setIsSearchOpen(false);
+      setSearchOpen(false);
     }
   };
 
+  const getPath = (link) => {
+    return link === 'Home' ? '/' : `/category/${link.toLowerCase().replace(/\s+/g, '-')}`;
+  };
+
   return (
-    <header className="bg-[#483AA0] text-white shadow-md">
-      {/* Top Bar */}
-      <div className="flex justify-between items-center px-4 py-3 md:py-4 max-w-7xl mx-auto">
+    <header className="bg-black text-white w-full z-30 shadow-md">
+      {/* Top Section */}
+      <div className="flex items-center justify-between px-4 py-4 max-w-[1500px] mx-auto">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold tracking-wide">
-          <span className="text-pink-400">Winni</span><span className="text-white">Code</span>
-        </Link>
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-[170px] h-auto object-contain"
+        />
 
         {/* Desktop Search */}
-        <form onSubmit={handleSearchSubmit} className="hidden md:block relative">
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Cari berita..."
-            className="w-60 px-4 py-1.5 rounded-full text-sm text-gray-800 focus:outline-none"
-          />
-          <button type="submit">
-            <FaSearch className="absolute right-3 top-2.5 text-gray-500 text-xs" />
-          </button>
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:block w-[400px] max-w-full"
+        >
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Cari tokoh, topik atau peristiwa"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="w-full rounded-xl bg-[#555] text-gray-200 px-4 py-2 pl-4 pr-10 placeholder-gray-300 focus:outline-none border border-[#888]"
+            />
+            <button type="submit">
+              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 text-lg" />
+            </button>
+          </div>
         </form>
 
-        {/* Mobile Buttons */}
+        {/* Mobile Icons */}
         <div className="flex items-center gap-4 md:hidden">
-          <button
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="text-lg"
-          >
-            <FaSearch />
+          <button onClick={() => setSearchOpen(!searchOpen)}>
+            <FaSearch size={18} />
           </button>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-xl"
-          >
-            {isMenuOpen ? <FaTimes /> : <FaBars />}
+          <button onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Search */}
-      {isSearchOpen && (
-        <form onSubmit={handleSearchSubmit} className="md:hidden px-4 pb-3">
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Cari berita..."
-            className="w-full px-4 py-2 rounded-full text-sm text-gray-800 focus:outline-none"
-          />
-        </form>
+      {/* Mobile Search Bar */}
+      {searchOpen && (
+        <div className="px-4 pb-3 md:hidden">
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              placeholder="Cari tokoh, topik atau peristiwa"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="w-full rounded-xl bg-[#555] text-gray-200 px-4 py-2 pl-4 pr-10 placeholder-gray-300 focus:outline-none border border-[#888]"
+            />
+            <button type="submit">
+              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 text-lg" />
+            </button>
+          </form>
+        </div>
       )}
 
+      {/* Divider */}
+      <div className="border-b border-[#434343]" />
+
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex justify-center gap-6 text-sm font-medium py-2 bg-[#0E2148]">
-        {navItems.map((item) => (
-          <NavLink
-            key={item}
-            to={item === 'Home' ? '/' : `/category/${item.toLowerCase().replace(/\s+/g, '-')}`}
-            className={({ isActive }) =>
-              `transition hover:text-pink-400 ${isActive ? 'text-pink-400' : ''}`
-            }
+      <div className="hidden md:flex items-center justify-center gap-6 px-4 py-2 text-sm font-semibold">
+        {navLinks.map((link) => (
+          <button
+            key={link}
+            onClick={() => navigate(getPath(link))}
+            className="text-white hover:text-[#CC66DA] transition-colors"
           >
-            {item}
-          </NavLink>
+            {link}
+          </button>
         ))}
-      </nav>
+      </div>
 
       {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="md:hidden flex flex-col px-4 pb-4 space-y-2 bg-blue-700 text-sm font-medium">
-          {navItems.map((item) => (
-            <NavLink
-              key={item}
-              to={item === 'Home' ? '/' : `/category/${item.toLowerCase().replace(/\s+/g, '-')}`}
-              className={({ isActive }) =>
-                `block transition hover:text-pink-400 ${isActive ? 'text-pink-400' : ''}`
-              }
-              onClick={() => setIsMenuOpen(false)}
+      {menuOpen && (
+        <div className="md:hidden px-6 py-3 bg-[#111] flex flex-col gap-3">
+          {navLinks.map((link) => (
+            <button
+              key={link}
+              onClick={() => {
+                navigate(getPath(link));
+                setMenuOpen(false);
+              }}
+              className="text-white py-2 border-b border-gray-700 text-left hover:text-[#27fc0b] transition"
             >
-              {item}
-            </NavLink>
+              {link}
+            </button>
           ))}
         </div>
       )}

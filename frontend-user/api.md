@@ -2,7 +2,7 @@
 
 🔐 Authentication
 
-POST /api/auth/login
+POST [/api/auth/login](http://localhost:5000/api/auth/login)
 
 Login Admin
 

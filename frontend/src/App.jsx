@@ -7,6 +7,7 @@ import Settings from './pages/admin/settings.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import ManageCategories from './pages/admin/ManageCategories.jsx';
+import NotFound from './pages/admin/NotFound.jsx';
 
 function App() {
   return (
@@ -26,14 +27,15 @@ function App() {
         />
 
         {/* Admin Routes Protected + Layout */}
-       <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-  <Route path="dashboard" element={<Dashboard />} />
-  <Route path="manage-news" element={<ManageNews />} />
-  <Route path="manage-categories" element={<ManageCategories />} />
-  <Route path="manage-comments" element={<ManageComments />} />
-  <Route path="settings" element={<Settings />} />
-</Route>
+          <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="manage-news" element={<ManageNews />} />
+          <Route path="manage-categories" element={<ManageCategories />} />
+          <Route path="manage-comments" element={<ManageComments />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
 
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

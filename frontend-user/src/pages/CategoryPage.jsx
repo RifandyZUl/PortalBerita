@@ -1,43 +1,83 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+// src/pages/CategoryPage.jsx
+import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
+import { formatWaktuLalu } from '../../utils/time';
 
 const CategoryPage = () => {
-  const { slug } = useParams(); // e.g. "gaya-hidup"
-  const [categoryNews, setCategoryNews] = useState([]);
+  const { slug } = useParams();
+  const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const formattedCategory = slug
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  // 🔧 Fungsi normalisasi
+  const normalize = (str) =>
+    String(str || '')
+      .toLowerCase()
+      .replace(/^"|"$/g, '') // hapus tanda kutip jika ada
+      .replace(/\s+/g, '-') // ubah spasi jadi dash untuk cocokkan slug
+      .trim();
+
+  // 🧠 Buat slug dari kategori yang sudah diformat
+  const formattedCategory = useMemo(() => {
+    const formatted = slug
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+      .trim();
+
+    console.log('📌 Slug:', slug);
+    console.log('📌 Formatted Category:', formatted);
+
+    return formatted;
+  }, [slug]);
 
   useEffect(() => {
-    setLoading(true);
+    const fetchNewsByCategory = async () => {
+      try {
+        setLoading(true);
 
-    axios
-      .get('/api/news/public/list')
-      .then((res) => {
-        const rawData = res.data?.data || [];
+        const response = await axios.get('/api/news/public/list');
+        const rawData = response.data?.data || [];
 
-        // Normalisasi category
-        const data = rawData.map((n) => ({
-          ...n,
-          category: n.category || n.Category?.name || '-',
-        }));
+        console.log('✅ Total berita di-fetch:', rawData.length);
 
-        const filtered = data.filter(
-          (n) => n.category.toLowerCase() === formattedCategory.toLowerCase()
+        // Normalisasi data kategori
+        const normalizedData = rawData.map((item) => {
+          const rawCategory =
+            item.category?.name || item.Category?.name || item.category || '-';
+          const cleanedCategory = String(rawCategory).replace(/^"|"$/g, '').trim();
+
+          return {
+            ...item,
+            normalizedCategorySlug: normalize(cleanedCategory),
+            displayCategory: cleanedCategory,
+          };
+        });
+
+        // Logging isi berita
+        normalizedData.forEach((b, i) => {
+          console.log(
+            `📰 [${i}] Judul: ${b.title} | Category: "${b.displayCategory}" | Slug: ${b.normalizedCategorySlug}`
+          );
+        });
+
+        // Cocokkan slug dari URL dengan slug hasil normalisasi kategori
+        const filtered = normalizedData.filter(
+          (item) => item.normalizedCategorySlug === slug.toLowerCase()
         );
 
-        setCategoryNews(filtered);
-      })
-      .catch((err) => {
-        console.error('❌ Gagal mengambil data kategori:', err);
-        setCategoryNews([]);
-      })
-      .finally(() => setLoading(false));
-  }, [slug, formattedCategory]);
+        console.log('🔍 Total berita setelah filter kategori:', filtered.length);
+
+        setNewsList(filtered);
+      } catch (error) {
+        console.error('❌ Error saat mengambil data kategori:', error);
+        setNewsList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNewsByCategory();
+  }, [slug]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 text-gray-800">
@@ -47,21 +87,23 @@ const CategoryPage = () => {
 
       {loading ? (
         <p className="text-center">Memuat berita...</p>
-      ) : categoryNews.length === 0 ? (
-        <p className="text-center text-gray-500">Belum ada berita di kategori ini.</p>
+      ) : newsList.length === 0 ? (
+        <p className="text-center text-gray-500">
+          Belum ada berita di kategori ini.
+        </p>
       ) : (
         <div className="space-y-10">
-          {categoryNews.map((news) => (
-            <div key={news.id} className="flex flex-col md:flex-row gap-6 border-b pb-6">
-              {/* Gambar */}
+          {newsList.map((news) => (
+            <div
+              key={news.id}
+              className="flex flex-col md:flex-row gap-6 border-b pb-6"
+            >
               <img
                 src={news.image_url}
+                alt={`Thumbnail: ${news.title}`}
                 onError={(e) => (e.target.src = '/fallback.jpg')}
-                alt={`Thumbnail berita: ${news.title}`}
                 className="w-full md:w-56 h-40 object-cover rounded-md"
               />
-
-              {/* Info */}
               <div className="flex-1">
                 <Link
                   to={`/news/${news.slug}`}
@@ -70,11 +112,13 @@ const CategoryPage = () => {
                   {news.title}
                 </Link>
                 <p className="text-sm text-gray-500 mt-1">
-                  {news.category} /{' '}
+                  {news.displayCategory} /{' '}
                   {new Date(news.createdAt).toLocaleDateString('id-ID')}
                 </p>
                 <p className="mt-2 text-sm text-gray-700">{news.summary}</p>
-                <p className="mt-1 text-xs text-gray-400">7 jam yang lalu</p>
+                <p className="mt-1 text-xs text-gray-400">
+                  {formatWaktuLalu(news.createdAt)}
+                </p>
               </div>
             </div>
           ))}

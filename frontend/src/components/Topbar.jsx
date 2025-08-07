@@ -45,7 +45,7 @@ const Topbar = ({ onMenuClick }) => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-xl font-semibold text-gray-800">News Portal Dashboard</h1>
+        <h1 className="text-xl font-semibold text-gray-800">News Portal Admin</h1>
       </div>
 
       {/* Kanan */}
@@ -57,7 +57,7 @@ const Topbar = ({ onMenuClick }) => {
               <p className="text-sm text-gray-500">{admin.email}</p>
             </div>
             <img
-              src={admin.photo || '/image/profile.jpg'}
+              src={admin.photo}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover border"
             />

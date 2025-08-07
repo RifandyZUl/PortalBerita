@@ -65,20 +65,28 @@ export const getAllNews = async (req, res) => {
 };
 
 // ✅ GET published news for public
+
 export const getPublishedNews = async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, limit } = req.query;
 
     const where = { status: 'published' };
-    if (category) where['$Category.name$'] = category;
+    if (category) {
+      where['$Category.name$'] = category;
+    }
 
     const news = await News.findAll({
       where,
       order: [['publishedAt', 'DESC']],
       include: [
-        { model: Category, attributes: ['name'], as: 'Category', required: true },
+        {
+          model: Category,
+          as: 'Category',
+          attributes: ['name'],
+          required: true,
+        },
       ],
-      limit: 10,
+      ...(limit && !isNaN(limit) ? { limit: parseInt(limit) } : {}),
     });
 
     const formatted = news.map((n) => ({
@@ -98,6 +106,7 @@ export const getPublishedNews = async (req, res) => {
     return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
+
 
 // ✅ GET public detail by slug
 export const getPublicNewsBySlug = async (req, res) => {
@@ -286,7 +295,7 @@ export const deleteNews = async (req, res) => {
 
 // ✅ Search news by keyword
 export const searchNewsByKeyword = async (req, res) => {
-  const { keyword } = req.query;
+  const { keyword, sort = 'createdAt', order = 'DESC', limit } = req.query;
 
   if (!keyword || keyword.trim().length < 2) {
     return errorResponse(res, 'Masukkan kata kunci minimal 2 huruf.', null, 400);
@@ -301,8 +310,8 @@ export const searchNewsByKeyword = async (req, res) => {
           { content: { [Op.iLike]: `%${keyword}%` } },
         ],
       },
-      order: [['createdAt', 'DESC']],
-      limit: 10,
+      order: [[sort, order.toUpperCase()]],
+      ...(limit && !isNaN(limit) ? { limit: parseInt(limit) } : {}),
       include: [
         { model: Category, attributes: ['name'], as: 'Category' },
         { model: Author, attributes: ['name'], as: 'Author' },
