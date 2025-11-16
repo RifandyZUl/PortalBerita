@@ -1,13 +1,13 @@
-import { successResponse, errorResponse } from '../utils/responseHandler.js';
+/**
+ * SETUP FILE - Kosong
+ * 
+ * File ini tidak digunakan karena setiap test file melakukan setup sendiri.
+ * 
+ * CATATAN:
+ * - Setiap test file memiliki beforeAll sendiri untuk setup database
+ * - Ini mirip dengan cara Jest bekerja
+ * - Tidak perlu global setup karena setiap test file isolated
+ */
 
-import { sequelize } from '../config/db.js';
-
-beforeAll(async () => {
-  try {
-    await sequelize.sync({ force: true });
-
-    console.log('✅ Database synced for testing');
-  } catch (err) {
-    console.error('❌ Failed to sync DB:', err);
-  }
-});
+// Tidak ada setup global yang diperlukan
+// Setiap test file melakukan setup sendiri di beforeAll

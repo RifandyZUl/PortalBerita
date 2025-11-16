@@ -15,7 +15,7 @@ export const getAllComments = async (req, res) => {
 
     const where = {};
     if (status) where.status = status;
-    if (search) where.content = { [Op.iLike]: `%${search}%` };
+    if (search) where.comment = { [Op.iLike]: `%${search}%` };
 
     console.log('📥 [GET] Query Params:', { status, search, page, limit });
 
@@ -90,6 +90,15 @@ export const updateCommentStatus = async (req, res) => {
   const { status } = req.body;
 
   console.log('📥 [PUT] Update Status Komentar:', { id, status });
+
+  if (!status) {
+    return res.status(400).json({ success: false, message: 'Status wajib diisi.' });
+  }
+
+  const validStatuses = ['Pending', 'Approved', 'Spam'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ success: false, message: 'Status tidak valid. Harus Pending, Approved, atau Spam.' });
+  }
 
   try {
     const comment = await Comment.findByPk(id);

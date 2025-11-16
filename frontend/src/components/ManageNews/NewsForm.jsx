@@ -162,11 +162,11 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             className="w-full rounded-md border px-3 py-2 text-sm"
           >
             <option value="">Select Category</option>
-            {categories.map((cat) => (
+            {categories && categories.length > 0 ? categories.map((cat) => (
               <option key={cat.categoryId} value={cat.categoryId}>
                 {cat.name}
               </option>
-            ))}
+            )) : null}
           </select>
         </div>
         <div>
@@ -180,11 +180,11 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
             className="w-full rounded-md border px-3 py-2 text-sm"
           >
             <option value="">Select Author</option>
-            {authors.map((author) => (
+            {authors && authors.length > 0 ? authors.map((author) => (
               <option key={author.authorId} value={author.authorId}>
                 {author.name}
               </option>
-            ))}
+            )) : null}
           </select>
         </div>
         <div>

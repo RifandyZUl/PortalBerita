@@ -4,7 +4,8 @@ import { getToken } from '../../utils/token';
 const ProtectedRoute = ({ children }) => {
   const token = getToken();
 
-  if (!token) {
+  // Check if token exists and is not empty string
+  if (!token || token.trim() === '') {
     return <Navigate to="/" replace />;
   }
 

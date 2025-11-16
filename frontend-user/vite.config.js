@@ -19,4 +19,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'), // untuk import '@/components/...' dll
     },
   },
+  // Vitest configuration dipindah ke vitest.config.js
 });

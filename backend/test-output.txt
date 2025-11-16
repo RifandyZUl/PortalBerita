@@ -1,0 +1,139 @@
+
+> backend@1.0.0 test:vitest:run
+> cross-env NODE_ENV=test vitest run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.8 [39m[90mC:/Magang/PortalBerita/backend[39m
+
+[90mstdout[2m | tests/category.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+[90mstdout[2m | tests/news.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+[90mstdout[2m | tests/authorController.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+[90mstdout[2m | tests/auth.controller.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+[90mstdout[2m | tests/dashboard.controller.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+[90mstdout[2m | tests/comment.controller.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+[90mstdout[2m | tests/admin.controller.test.js
+[22m[39m[ENV] test | DB: berita_test
+
+ [2m[90m↓[39m[22m tests/authorController.test.js[2m > [22m🧪 AUTHOR CONTROLLER TEST[2m > [22mGET /api/authors - Get All Authors[2m > [22m✅ Berhasil mengambil semua penulis
+ [2m[90m↓[39m[22m tests/authorController.test.js[2m > [22m🧪 AUTHOR CONTROLLER TEST[2m > [22mGET /api/authors - Get All Authors[2m > [22m✅ Data penulis harus memiliki struktur yang benar
+ [2m[90m↓[39m[22m tests/authorController.test.js[2m > [22m🧪 AUTHOR CONTROLLER TEST[2m > [22mGET /api/authors - Get All Authors[2m > [22m✅ Harus mengembalikan array kosong jika tidak ada penulis
+ [2m[90m↓[39m[22m tests/authorController.test.js[2m > [22m🧪 AUTHOR CONTROLLER TEST[2m > [22mPOST /api/news - News Creation Validation (Author Related)[2m > [22m❌ Harus gagal jika authorId tidak dikirim
+ [2m[90m↓[39m[22m tests/authorController.test.js[2m > [22m🧪 AUTHOR CONTROLLER TEST[2m > [22mPOST /api/news - News Creation Validation (Author Related)[2m > [22m❌ Harus gagal jika authorId tidak valid
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mGET /api/news/public/list - Public News List[2m > [22m✅ Berhasil mengambil berita yang published untuk public
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mGET /api/news/public/list - Public News List[2m > [22m✅ Berita draft tidak boleh muncul di public list
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mGET /api/news - Admin News List[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mGET /api/news - Admin News List[2m > [22m✅ Berhasil mengambil semua berita untuk admin
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mGET /api/news - Admin News List[2m > [22m✅ Admin dapat melihat berita dengan status draft
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mPOST /api/news - Create News[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mPOST /api/news - Create News[2m > [22m❌ Harus gagal jika title tidak dikirim
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mPOST /api/news - Create News[2m > [22m❌ Harus gagal jika content terlalu pendek
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mPOST /api/news - Create News[2m > [22m❌ Harus gagal jika imageUrl tidak dikirim
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mPOST /api/news - Create News[2m > [22m✅ Berhasil membuat berita baru
+ [2m[90m↓[39m[22m tests/news.test.js[2m > [22m🧪 NEWS CONTROLLER TEST[2m > [22mPOST /api/news - Create News[2m > [22m✅ Slug harus otomatis dibuat dari title
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPOST /api/categories - Create Category[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPOST /api/categories - Create Category[2m > [22m❌ Harus gagal jika name tidak dikirim
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPOST /api/categories - Create Category[2m > [22m✅ Berhasil menambahkan kategori baru
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPOST /api/categories - Create Category[2m > [22m❌ Harus gagal jika slug duplikat
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mGET /api/categories - Get Categories[2m > [22m✅ Berhasil mengambil semua kategori tanpa token (public endpoint)
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPUT /api/categories/:id - Update Category[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPUT /api/categories/:id - Update Category[2m > [22m❌ Harus gagal jika kategori tidak ditemukan
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mPUT /api/categories/:id - Update Category[2m > [22m✅ Berhasil mengupdate kategori
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mDELETE /api/categories/:id - Delete Category[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mDELETE /api/categories/:id - Delete Category[2m > [22m❌ Harus gagal jika kategori tidak ditemukan
+ [2m[90m↓[39m[22m tests/category.test.js[2m > [22m🧪 CATEGORY ENDPOINT TEST[2m > [22mDELETE /api/categories/:id - Delete Category[2m > [22m✅ Berhasil menghapus kategori
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Validation Tests[2m > [22m❌ Harus gagal jika username/email tidak dikirim
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Validation Tests[2m > [22m❌ Harus gagal jika password tidak dikirim
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Validation Tests[2m > [22m❌ Harus gagal jika emailOrUsername bukan string
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Validation Tests[2m > [22m❌ Harus gagal jika semua field kosong
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Authentication Tests[2m > [22m❌ Harus gagal jika email/username tidak ditemukan
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Authentication Tests[2m > [22m❌ Harus gagal jika password salah
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Authentication Tests[2m > [22m✅ Berhasil login dengan email
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Authentication Tests[2m > [22m✅ Berhasil login dengan username
+ [2m[90m↓[39m[22m tests/auth.controller.test.js[2m > [22m🧪 AUTH CONTROLLER TEST[2m > [22mPOST /api/auth/login - Authentication Tests[2m > [22m✅ Token yang dihasilkan harus berbeda setiap login
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPOST /api/comments/:newsId - Create Comment[2m > [22m❌ Harus gagal jika name tidak dikirim
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPOST /api/comments/:newsId - Create Comment[2m > [22m❌ Harus gagal jika email tidak dikirim
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPOST /api/comments/:newsId - Create Comment[2m > [22m❌ Harus gagal jika comment tidak dikirim
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPOST /api/comments/:newsId - Create Comment[2m > [22m❌ Harus gagal jika newsId tidak ditemukan
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPOST /api/comments/:newsId - Create Comment[2m > [22m✅ Berhasil membuat komentar baru
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mGET /api/comments - Get All Comments[2m > [22m✅ Berhasil mengambil semua komentar
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mGET /api/comments - Get All Comments[2m > [22m✅ Berhasil filter komentar berdasarkan status
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mGET /api/comments - Get All Comments[2m > [22m✅ Berhasil search komentar
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mGET /api/comments - Get All Comments[2m > [22m✅ Berhasil pagination komentar
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPATCH /api/comments/:id/status - Update Comment Status[2m > [22m❌ Harus gagal jika status tidak dikirim
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPATCH /api/comments/:id/status - Update Comment Status[2m > [22m❌ Harus gagal jika comment tidak ditemukan
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPATCH /api/comments/:id/status - Update Comment Status[2m > [22m✅ Berhasil mengupdate status komentar ke Approved
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mPATCH /api/comments/:id/status - Update Comment Status[2m > [22m✅ Berhasil mengupdate status komentar ke Spam
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mGET /api/comments/public/:slug - Get Comments by News Slug[2m > [22m❌ Harus gagal jika slug tidak ditemukan
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mGET /api/comments/public/:slug - Get Comments by News Slug[2m > [22m✅ Berhasil mengambil komentar yang approved untuk news slug
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mDELETE /api/comments/:id - Delete Comment[2m > [22m❌ Harus gagal jika comment tidak ditemukan
+ [2m[90m↓[39m[22m tests/comment.controller.test.js[2m > [22m🧪 COMMENT CONTROLLER TEST[2m > [22mDELETE /api/comments/:id - Delete Comment[2m > [22m✅ Berhasil menghapus komentar
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard - Dashboard Home[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard - Dashboard Home[2m > [22m✅ Berhasil mengakses dashboard
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/stats - Get Dashboard Stats[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/stats - Get Dashboard Stats[2m > [22m✅ Berhasil mengambil statistik dashboard
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles - Get Recent Articles[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles - Get Recent Articles[2m > [22m✅ Berhasil mengambil artikel terbaru dengan default limit
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles - Get Recent Articles[2m > [22m✅ Berhasil mengambil artikel dengan custom limit
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles - Get Recent Articles[2m > [22m✅ Berhasil pagination artikel
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles - Get Recent Articles[2m > [22m✅ Artikel harus memiliki commentsCount
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/comments - Get Recent Comments[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/comments - Get Recent Comments[2m > [22m✅ Berhasil mengambil komentar terbaru
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/comments - Get Recent Comments[2m > [22m✅ Berhasil pagination komentar
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles/all - Get All Articles Paginated[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles/all - Get All Articles Paginated[2m > [22m✅ Berhasil mengambil semua artikel dengan pagination
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/articles/all - Get All Articles Paginated[2m > [22m✅ Berhasil pagination dengan custom page dan limit
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/comments/all - Get All Comments Paginated[2m > [22m❌ Harus gagal jika tidak ada token
+ [2m[90m↓[39m[22m tests/dashboard.controller.test.js[2m > [22m🧪 DASHBOARD CONTROLLER TEST[2m > [22mGET /api/dashboard/comments/all - Get All Comments Paginated[2m > [22m✅ Berhasil mengambil semua komentar dengan pagination
+[90mstdout[2m | tests/admin.controller.test.js
+[22m[39m✅ Database synced for testing
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mGET /api/admin/profile - Get Profile[2m > [22m[2m❌ Harus gagal jika tidak ada token
+[22m[39m[GET] /api/admin/profile
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mGET /api/admin/profile - Get Profile[2m > [22m[2m❌ Harus gagal jika token tidak valid
+[22m[39m[GET] /api/admin/profile
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mGET /api/admin/profile - Get Profile[2m > [22m[2m✅ Berhasil mengambil profile admin
+[22m[39m[GET] /api/admin/profile
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mPUT /api/admin/profile - Update Profile[2m > [22m[2m❌ Harus gagal jika tidak ada token
+[22m[39m[PUT] /api/admin/profile
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mPUT /api/admin/profile - Update Profile[2m > [22m[2m✅ Berhasil mengupdate firstName dan lastName
+[22m[39m[PUT] /api/admin/profile
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mPUT /api/admin/profile - Update Profile[2m > [22m[2m✅ Berhasil mengupdate bio
+[22m[39m[PUT] /api/admin/profile
+
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mGET /api/admin/profile - Get Profile[2m > [22m❌ Harus gagal jika tidak ada token[32m 24[2mms[22m[39m
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mGET /api/admin/profile - Get Profile[2m > [22m❌ Harus gagal jika token tidak valid[32m 5[2mms[22m[39m
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mGET /api/admin/profile - Get Profile[2m > [22m✅ Berhasil mengambil profile admin[32m 17[2mms[22m[39m
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mPUT /api/admin/profile - Update Profile[2m > [22m❌ Harus gagal jika tidak ada token[32m 24[2mms[22m[39m
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mPUT /api/admin/profile - Update Profile[2m > [22m✅ Berhasil mengupdate firstName dan lastName[32m 17[2mms[22m[39m
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mPUT /api/admin/profile - Update Profile[2m > [22m✅ Berhasil mengupdate bio[32m 15[2mms[22m[39m
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mPUT /api/admin/profile - Update Profile[2m > [22m[2m✅ Berhasil mengupdate semua field sekaligus
+[22m[39m[PUT] /api/admin/profile
+
+[90mstdout[2m | tests/admin.controller.test.js[2m > [22m[2m🧪 ADMIN CONTROLLER TEST[2m > [22m[2mPUT /api/admin/profile - Update Profile[2m > [22m[2m✅ Harus mempertahankan nilai lama jika field tidak dikirim
+[22m[39m[PUT] /api/admin/profile
+
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mPUT /api/admin/profile - Update Profile[2m > [22m✅ Berhasil mengupdate semua field sekaligus[32m 11[2mms[22m[39m
+ [32m✓[39m tests/admin.controller.test.js[2m > [22m🧪 ADMIN CONTROLLER TEST[2m > [22mPUT /api/admin/profile - Update Profile[2m > [22m✅ Harus mempertahankan nilai lama jika field tidak dikirim[32m 15[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[2m | [22m[33m70 skipped[39m[90m (78)[39m
+[2m   Start at [22m 01:31:39
+[2m   Duration [22m 5.97s[2m (transform 1.63s, setup 10.08s, collect 17.45s, tests 5.05s, environment 2ms, prepare 405ms)[22m
+
