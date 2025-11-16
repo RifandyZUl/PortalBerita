@@ -30,5 +30,5 @@ Thumbs.db
 coverage/
 
 # === Sequelize CLI (opsional) ===
-migrations/
-seeders/
+# migrations/
+# seeders/

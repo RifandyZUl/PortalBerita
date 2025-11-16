@@ -13,11 +13,17 @@ import commentRoutes from './routes/comments.routes.js';
 const app = express();
 
 // ===== MIDDLEWARE ===== //
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+// CORS Configuration - support both environment variable and default localhost
+const corsOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'http://localhost:5174'];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (corsOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

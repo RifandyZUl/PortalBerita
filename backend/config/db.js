@@ -9,17 +9,35 @@ const envFilePath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
 dotenv.config({ path: envFilePath });
 
 // Membuat instance Sequelize dengan konfigurasi dari environment variables
-const sequelize = new Sequelize(
-  process.env.DB_NAME,     // Nama database
-  process.env.DB_USER,     // Username database
-  process.env.DB_PASS,     // Password database
-  {
-    host: process.env.DB_HOST, // Host database (misalnya: localhost)
-    dialect: 'postgres',       // Dialek database yang digunakan
-    logging: process.env.NODE_ENV === 'development'// 
-    // process.env.NODE_ENV !== 'production'// Tampilkan SQL query hanya di dev
-  }
-);
+// Support DATABASE_URL for platforms like Railway, Render, Heroku
+const sequelize = process.env.DATABASE_URL
+  ? new Sequelize(process.env.DATABASE_URL, {
+      dialect: 'postgres',
+      dialectOptions: {
+        ssl: process.env.NODE_ENV === 'production' ? {
+          require: true,
+          rejectUnauthorized: false
+        } : false
+      },
+      logging: process.env.NODE_ENV === 'development'
+    })
+  : new Sequelize(
+      process.env.DB_NAME,     // Nama database
+      process.env.DB_USER,     // Username database
+      process.env.DB_PASS,     // Password database
+      {
+        host: process.env.DB_HOST, // Host database (misalnya: localhost)
+        port: process.env.DB_PORT || 5432,
+        dialect: 'postgres',       // Dialek database yang digunakan
+        logging: process.env.NODE_ENV === 'development',
+        dialectOptions: {
+          ssl: process.env.NODE_ENV === 'production' ? {
+            require: true,
+            rejectUnauthorized: false
+          } : false
+        }
+      }
+    );
 
 /**
  * Fungsi untuk menguji koneksi ke database PostgreSQL.
