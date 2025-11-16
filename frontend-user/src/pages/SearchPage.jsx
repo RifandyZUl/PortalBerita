@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { formatWaktuLalu } from '../../utils/time';
-import axios from 'axios';
+import api from '@/utils/api';
 import SkeletonLoader from '@/components/SkeletonLoader';
 
 const SearchPage = () => {
@@ -17,7 +17,7 @@ const SearchPage = () => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`/api/news/search?keyword=${keyword}`);
+        const res = await api.get(`/api/news/search?keyword=${keyword}`);
         setNewsList(res.data.data || []);
       } catch (err) {
         console.error('Gagal mengambil berita:', err);

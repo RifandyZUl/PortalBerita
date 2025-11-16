@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '@/utils/api';
 import PopularGrid from '@/components/PopularGrid';
 import SectionTitle from '@/components/SectionTitle';
 import SectionKategori from '@/components/SectionKategori';
@@ -27,10 +27,10 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         const [popularRes, latestRes, nasionalRes, olahragaRes] = await Promise.all([
-          axios.get('/api/news/popular'),
-          axios.get('/api/news/public/list?limit=10'),
-          axios.get('/api/news/public/list?category=Nasional&limit=10'),
-          axios.get('/api/news/public/list?category=Olahraga&limit=10'),
+          api.get('/api/news/popular'),
+          api.get('/api/news/public/list?limit=10'),
+          api.get('/api/news/public/list?category=Nasional&limit=10'),
+          api.get('/api/news/public/list?category=Olahraga&limit=10'),
         ]);
 
         setPopularNews(popularRes.data?.data || []);

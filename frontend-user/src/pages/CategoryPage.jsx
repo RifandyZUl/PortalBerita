@@ -1,7 +1,7 @@
 // src/pages/CategoryPage.jsx
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import api from '@/utils/api';
 import { formatWaktuLalu } from '../../utils/time';
 
 const CategoryPage = () => {
@@ -35,7 +35,7 @@ const CategoryPage = () => {
       try {
         setLoading(true);
 
-        const response = await axios.get('/api/news/public/list');
+        const response = await api.get('/api/news/public/list');
         const rawData = response.data?.data || [];
 
         console.log('✅ Total berita di-fetch:', rawData.length);

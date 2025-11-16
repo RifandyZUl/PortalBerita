@@ -16,7 +16,8 @@ const SectionKategori = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch('/api/news/public/list');
+        const baseURL = import.meta.env.VITE_API_URL || '';
+        const res = await fetch(`${baseURL}/api/news/public/list`);
         const data = await res.json();
         setNewsData(data?.data || []);
       } catch (err) {

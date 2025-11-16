@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '@/utils/api';
 import { getResizedImage } from '../../utils/imageTransform';
 import SkeletonLoader from '@/components/SkeletonLoader';
 
@@ -17,7 +17,7 @@ const NewsDetail = () => {
   useEffect(() => {
     const fetchNewsDetail = async () => {
       try {
-        const response = await axios.get(`/api/news/public/detail/${slug}`);
+        const response = await api.get(`/api/news/public/detail/${slug}`);
         setNews(response.data.data);
       } catch (error) {
         console.error('❌ Gagal mengambil detail berita:', error);
@@ -34,7 +34,7 @@ const NewsDetail = () => {
       if (news?.id && !hasAddedView) {
         console.log('🟢 Menambahkan views ke newsId:', news.id);
         try {
-          const res = await axios.patch(`/api/news/${news.id}/views`);
+          const res = await api.patch(`/api/news/${news.id}/views`);
           console.log('✅ PATCH response:', res.data);
 
           // Tambah views secara lokal
@@ -55,7 +55,7 @@ const NewsDetail = () => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await axios.get(`/api/comments/public/${slug}`);
+        const response = await api.get(`/api/comments/public/${slug}`);
         setComments(response.data || []);
       } catch (error) {
         console.error('❌ Gagal mengambil komentar:', error);
@@ -85,10 +85,10 @@ const NewsDetail = () => {
 
     try {
       setSubmitting(true);
-      await axios.post(`/api/comments/${news.id}`, form);
+      await api.post(`/api/comments/${news.id}`, form);
       setForm({ name: '', email: '', comment: '' });
 
-      const updated = await axios.get(`/api/comments/public/${slug}`);
+      const updated = await api.get(`/api/comments/public/${slug}`);
       setComments(updated.data || []);
     } catch (error) {
       console.error('❌ Gagal mengirim komentar:', error);

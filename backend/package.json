@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "migrate": "node migrateData.js",
     "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
     "test:ui": "cross-env NODE_ENV=test vitest --ui",
     "test:vitest": "cross-env NODE_ENV=test vitest",
