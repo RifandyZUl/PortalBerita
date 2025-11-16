@@ -4,9 +4,11 @@ import { Sequelize } from 'sequelize';
 // Import dotenv untuk membaca variabel lingkungan dari file .env
 import dotenv from 'dotenv';
 
-// Load environment variables dari file .env ke dalam process.env
-const envFilePath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
-dotenv.config({ path: envFilePath });
+// Load environment variables HANYA di development/test (di production, Railway sudah set env vars)
+if (process.env.NODE_ENV !== 'production') {
+  const envFilePath = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+  dotenv.config({ path: envFilePath });
+}
 
 // Membuat instance Sequelize dengan konfigurasi dari environment variables
 // Support DATABASE_URL for platforms like Railway, Render, Heroku

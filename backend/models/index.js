@@ -1,29 +1,32 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { Sequelize } from 'sequelize';
+// Import sequelize instance dari config/db.js untuk konsistensi
+import { sequelize } from '../config/db.js';
 
-// ⬇️ Load env file sesuai NODE_ENV, default ke .env
+// ⬇️ Load env file HANYA di development/test (di production, Railway sudah set env vars)
 const env = process.env.NODE_ENV || 'development';
-const envFilePath = `.env.${env}`;
-if (fs.existsSync(envFilePath)) {
-  dotenv.config({ path: envFilePath });
-} else {
-  dotenv.config(); // fallback ke .env biasa
+if (env !== 'production') {
+  const envFilePath = `.env.${env}`;
+  if (fs.existsSync(envFilePath)) {
+    dotenv.config({ path: envFilePath });
+  } else {
+    dotenv.config(); // fallback ke .env biasa
+  }
 }
 
-console.log('[ENV]', env, '| DB:', process.env.DB_NAME);
-
-// Inisialisasi Sequelize
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: process.env.DB_HOST,
-    dialect: 'postgres',
-    logging: false,
-  }
-);
+// Log database name untuk debugging
+const dbName = process.env.DATABASE_URL 
+  ? (() => {
+      try {
+        const url = new URL(process.env.DATABASE_URL);
+        return url.pathname.slice(1) || 'from DATABASE_URL';
+      } catch (e) {
+        return 'from DATABASE_URL (parse error)';
+      }
+    })()
+  : process.env.DB_NAME || 'undefined';
+console.log('[ENV]', env, '| DB:', dbName);
+console.log('[DEBUG] DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
 // Import semua model
 import Admin from './admin.js';

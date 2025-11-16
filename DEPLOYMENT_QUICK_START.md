@@ -40,9 +40,9 @@ NODE_ENV=production
 PORT=5000
 DATABASE_URL=<paste-connection-url-dari-railway>
 JWT_SECRET=<generate-random-32-char-string>
-CLOUDINARY_CLOUD_NAME=<dari-cloudinary>
-CLOUDINARY_API_KEY=<dari-cloudinary>
-CLOUDINARY_API_SECRET=<dari-cloudinary>
+CLOUDINARY_CLOUD_NAME=<dm8wehn4a>
+CLOUDINARY_API_KEY=<165127524344634>
+CLOUDINARY_API_SECRET=<p8TF5hs-XrwHVljhxuOg8Y0VYXg>
 CORS_ORIGIN=https://your-admin.vercel.app,https://your-user.vercel.app
 ```
 

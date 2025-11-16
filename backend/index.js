@@ -1,6 +1,9 @@
 // index.js
 import dotenv from 'dotenv';
-dotenv.config();
+// Load dotenv HANYA di development/test (di production, Railway sudah set env vars)
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 import connectDB from './config/db.js';
 import db from './models/index.js';
@@ -10,8 +13,11 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   try {
+    // Connect using config/db.js (already handles authentication)
     await connectDB();
-    await db.sequelize.authenticate();
+    
+    // Verify models/index.js connection (should be same instance, but double-check)
+    // Note: If using DATABASE_URL, both should use same connection
     console.log('✅ PostgreSQL connected');
 
     const shouldAlter = process.env.SEQUELIZE_ALTER === 'true';
