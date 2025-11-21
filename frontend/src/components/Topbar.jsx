@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
-import { removeToken, getToken } from '../../src/utils/token';
-import api from '../../utils/api';
+import { removeToken, getToken } from '../utils/token';
+import api from '../utils/api';
 
 const Topbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
