@@ -26,12 +26,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
 import NewsDetail from '../NewsDetail';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = axios;
+// Mock api
+const mockApiGet = vi.fn();
+const mockApiPost = vi.fn();
+const mockApiPatch = vi.fn();
+vi.mock('@/utils/api', () => ({
+  default: {
+    get: (...args) => mockApiGet(...args),
+    post: (...args) => mockApiPost(...args),
+    patch: (...args) => mockApiPatch(...args),
+    interceptors: {
+      response: {
+        use: vi.fn(),
+      },
+    },
+  },
+}));
 
 // Mock useParams
 const mockUseParams = vi.fn(() => ({ slug: 'test-news-slug' }));
@@ -73,7 +85,7 @@ describe('NewsDetail Page', () => {
    * - SkeletonLoader component ter-render
    */
   it('✅ TEST 1: Harus menampilkan loading state saat fetch data (SkeletonLoader)', () => {
-    mockedAxios.get.mockImplementation(() => new Promise(() => {}));
+    mockApiGet.mockImplementation(() => new Promise(() => {}));
 
     render(
       <BrowserRouter>
@@ -111,15 +123,15 @@ describe('NewsDetail Page', () => {
       views: 100,
     };
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockNews },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: [],
     });
 
-    mockedAxios.patch.mockResolvedValueOnce({
+    mockApiPatch.mockResolvedValueOnce({
       data: { success: true },
     });
 
@@ -173,15 +185,15 @@ describe('NewsDetail Page', () => {
       },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockNews },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: mockComments,
     });
 
-    mockedAxios.patch.mockResolvedValueOnce({
+    mockApiPatch.mockResolvedValueOnce({
       data: { success: true },
     });
 
@@ -229,23 +241,23 @@ describe('NewsDetail Page', () => {
       views: 0,
     };
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockNews },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: [],
     });
 
-    mockedAxios.patch.mockResolvedValueOnce({
+    mockApiPatch.mockResolvedValueOnce({
       data: { success: true },
     });
 
-    mockedAxios.post.mockResolvedValueOnce({
+    mockApiPost.mockResolvedValueOnce({
       data: { success: true },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: [{ commentId: 1, name: 'Test User', comment: 'Test comment' }],
     });
 
@@ -271,7 +283,7 @@ describe('NewsDetail Page', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockApiPost).toHaveBeenCalledWith(
         '/api/comments/1',
         expect.objectContaining({
           name: 'Test User',
@@ -298,7 +310,7 @@ describe('NewsDetail Page', () => {
    * - Tidak crash, tetap render error message
    */
   it('✅ TEST 5: Harus handle missing news dengan pesan error (404 - Berita tidak ditemukan)', async () => {
-    mockedAxios.get.mockRejectedValueOnce({
+    mockApiGet.mockRejectedValueOnce({
       response: { status: 404 },
     });
 

@@ -28,7 +28,12 @@ import SectionKategori from '../SectionKategori';
 const mockApiGet = vi.fn();
 vi.mock('@/utils/api', () => ({
   default: {
-    get: mockApiGet,
+    get: (...args) => mockApiGet(...args),
+    interceptors: {
+      response: {
+        use: vi.fn(),
+      },
+    },
   },
 }));
 

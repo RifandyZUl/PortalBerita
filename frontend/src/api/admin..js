@@ -3,7 +3,10 @@ import { getBaseURL } from '../utils/getBaseURL';
 
 export const getAdminDashboard = async () => {
   const baseURL = getBaseURL();
-  const token = localStorage.getItem('token');
+  // Pastikan localStorage tersedia (hanya di browser)
+  const token = typeof window !== 'undefined' && window.localStorage 
+    ? localStorage.getItem('token') 
+    : null;
 
   const res = await fetch(`${baseURL}/api/admin/dashboard`, {
     method: 'GET',

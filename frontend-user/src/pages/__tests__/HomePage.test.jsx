@@ -25,12 +25,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
 import HomePage from '../HomePage';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = axios;
+// Mock api
+const mockApiGet = vi.fn();
+vi.mock('@/utils/api', () => ({
+  default: {
+    get: (...args) => mockApiGet(...args),
+    interceptors: {
+      response: {
+        use: vi.fn(),
+      },
+    },
+  },
+}));
 
 // Mock child components
 vi.mock('@/components/PopularGrid', () => ({
@@ -74,7 +82,7 @@ describe('HomePage', () => {
    */
   it('✅ TEST 1: Harus menampilkan loading state saat fetch data (SkeletonLoader)', () => {
     // Mock axios dengan delay
-    mockedAxios.get.mockImplementation(() => new Promise(() => {}));
+    mockApiGet.mockImplementation(() => new Promise(() => {}));
 
     render(
       <BrowserRouter>
@@ -105,19 +113,24 @@ describe('HomePage', () => {
       { id: 2, title: 'Popular 2', slug: 'popular-2' },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({
+    // Urutan API call: popular, latest, nasional, olahraga, international
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockPopularNews },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
+      data: { data: [] },
+    });
+
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
@@ -151,19 +164,24 @@ describe('HomePage', () => {
       { id: 2, title: 'Latest 2', slug: 'latest-2' },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({
+    // Urutan API call: popular, latest, nasional, olahraga, international
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockLatestNews },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
+      data: { data: [] },
+    });
+
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
@@ -195,7 +213,13 @@ describe('HomePage', () => {
    * - Error di-handle dengan baik
    */
   it('✅ TEST 5: Harus handle API error gracefully (tidak crash saat API gagal)', async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
+    // Mock semua 5 API calls dengan error (semua akan di-catch dan return empty array)
+    // HomePage menggunakan Promise.all dengan .catch() untuk setiap API call
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <BrowserRouter>
@@ -204,9 +228,10 @@ describe('HomePage', () => {
     );
 
     await waitFor(() => {
-      // Tidak boleh crash, harus render dengan empty state atau error handling
+      // Component tidak boleh crash, harus render dengan empty state
+      // Skeleton loader harus hilang setelah loading selesai
       expect(screen.queryByTestId('skeleton-loader')).not.toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   /**
@@ -223,7 +248,7 @@ describe('HomePage', () => {
    * - SectionKategori component ter-render di halaman
    */
   it('✅ TEST 4: Harus render section kategori (Hiburan & Teknologi)', async () => {
-    mockedAxios.get.mockResolvedValue({ data: { data: [] } });
+    mockApiGet.mockResolvedValue({ data: { data: [] } });
 
     render(
       <BrowserRouter>

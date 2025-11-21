@@ -10,7 +10,7 @@ const getBaseURL = () => {
   }
   
   // Jika di production (Vercel), gunakan Railway URL
-  if (import.meta.env.MODE === 'production' || window.location.hostname.includes('vercel.app')) {
+  if (import.meta.env.MODE === 'production' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'))) {
     return 'https://portalberitaa.up.railway.app';
   }
   
@@ -20,11 +20,13 @@ const getBaseURL = () => {
 
 const baseURL = getBaseURL();
 
-// Debug: Log API URL yang digunakan
-console.log('🔗 API Base URL:', baseURL);
-console.log('🔗 VITE_API_URL env:', import.meta.env.VITE_API_URL);
-console.log('🔗 MODE:', import.meta.env.MODE);
-console.log('🔗 Hostname:', window.location.hostname);
+// Debug: Log API URL yang digunakan (hanya di browser)
+if (typeof window !== 'undefined') {
+  console.log('🔗 API Base URL:', baseURL);
+  console.log('🔗 VITE_API_URL env:', import.meta.env.VITE_API_URL);
+  console.log('🔗 MODE:', import.meta.env.MODE);
+  console.log('🔗 Hostname:', window.location.hostname);
+}
 
 export const loginAdmin = async (emailOrUsername, password) => {
   try {

@@ -31,9 +31,12 @@ const api = axios.create({
 // Interceptor untuk menambahkan token ke setiap request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Pastikan localStorage tersedia (hanya di browser)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -50,7 +53,10 @@ api.interceptors.response.use(
     
     // Handle 401 Unauthorized - redirect to login
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
+      // Pastikan localStorage tersedia (hanya di browser)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('token');
+      }
       // Don't redirect automatically, let the component handle it
     }
     

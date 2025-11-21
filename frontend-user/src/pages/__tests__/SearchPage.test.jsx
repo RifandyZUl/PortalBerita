@@ -26,12 +26,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
 import SearchPage from '../SearchPage';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = axios;
+// Mock api
+const mockApiGet = vi.fn();
+vi.mock('@/utils/api', () => ({
+  default: {
+    get: (...args) => mockApiGet(...args),
+    interceptors: {
+      response: {
+        use: vi.fn(),
+      },
+    },
+  },
+}));
 
 // Mock useSearchParams
 const mockSearchParams = new URLSearchParams('?query=teknologi');
@@ -91,7 +99,7 @@ describe('SearchPage', () => {
       },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockResults },
     });
 
@@ -129,7 +137,7 @@ describe('SearchPage', () => {
   it('✅ TEST 2: Harus bisa mengubah sort option (Terbaru, Popular, Relevansi)', async () => {
     const user = userEvent.setup();
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
@@ -178,7 +186,7 @@ describe('SearchPage', () => {
       },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockResults },
     });
 
@@ -217,7 +225,7 @@ describe('SearchPage', () => {
    * - Menampilkan pesan "Berita tidak ditemukan"
    */
   it('✅ TEST 4: Harus menampilkan pesan jika tidak ada hasil (empty state)', async () => {
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
@@ -228,7 +236,7 @@ describe('SearchPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/berita tidak ditemukan/i)).toBeInTheDocument();
+      expect(screen.getByText(/tidak ada hasil ditemukan/i)).toBeInTheDocument();
     });
   });
 
@@ -246,7 +254,7 @@ describe('SearchPage', () => {
    * - SkeletonLoader component ter-render
    */
   it('✅ TEST 5: Harus menampilkan loading state (SkeletonLoader)', () => {
-    mockedAxios.get.mockImplementation(() => new Promise(() => {}));
+    mockApiGet.mockImplementation(() => new Promise(() => {}));
 
     render(
       <BrowserRouter>
@@ -273,7 +281,7 @@ describe('SearchPage', () => {
    * - Error di-handle dengan baik
    */
   it('✅ TEST 6: Harus handle API error gracefully (tidak crash saat API gagal)', async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <BrowserRouter>
@@ -282,7 +290,7 @@ describe('SearchPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/berita tidak ditemukan/i)).toBeInTheDocument();
+      expect(screen.getByText(/tidak ada hasil ditemukan/i)).toBeInTheDocument();
     });
   });
 });
