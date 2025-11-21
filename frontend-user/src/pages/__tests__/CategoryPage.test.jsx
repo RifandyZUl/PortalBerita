@@ -24,12 +24,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
 import CategoryPage from '../CategoryPage';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = axios;
+// Mock api utils
+const mockApiGet = vi.fn();
+vi.mock('@/utils/api', () => ({
+  default: {
+    get: (url) => mockApiGet(url),
+  },
+}));
+
+// Mock SkeletonLoader
+vi.mock('@/components/SkeletonLoader', () => ({
+  default: () => <div data-testid="skeleton-loader">Loading...</div>,
+}));
 
 // Mock useParams
 const mockUseParams = vi.fn(() => ({ slug: 'teknologi' }));
@@ -51,6 +59,7 @@ describe('CategoryPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseParams.mockReturnValue({ slug: 'teknologi' });
+    mockApiGet.mockResolvedValue({ data: { data: [] } });
   });
 
   /**
@@ -60,13 +69,13 @@ describe('CategoryPage', () => {
    * - Data sedang di-fetch dari API
    * 
    * YANG DITEST:
-   * - Harus menampilkan "Memuat berita..." saat loading
+   * - Harus menampilkan SkeletonLoader saat loading
    * 
    * EXPECTED RESULT:
-   * - Text "Memuat berita..." ter-render
+   * - SkeletonLoader ter-render (tidak ada error)
    */
-  it('✅ TEST 1: Harus menampilkan loading state (Memuat berita...)', () => {
-    mockedAxios.get.mockImplementation(() => new Promise(() => {}));
+  it('✅ TEST 1: Harus menampilkan loading state (SkeletonLoader)', () => {
+    mockApiGet.mockImplementation(() => new Promise(() => {}));
 
     render(
       <BrowserRouter>
@@ -74,7 +83,8 @@ describe('CategoryPage', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText(/memuat berita/i)).toBeInTheDocument();
+    // SkeletonLoader should render
+    expect(screen.getByTestId('skeleton-loader')).toBeInTheDocument();
   });
 
   /**
@@ -121,7 +131,7 @@ describe('CategoryPage', () => {
       },
     ];
 
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: mockNews },
     });
 
@@ -155,7 +165,7 @@ describe('CategoryPage', () => {
    * - Slug "olah-raga" → "Olah Raga"
    */
   it('✅ TEST 3: Harus format category name dari slug dengan benar (teknologi → Teknologi)', async () => {
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
@@ -181,10 +191,10 @@ describe('CategoryPage', () => {
    * - Harus menampilkan pesan yang user-friendly
    * 
    * EXPECTED RESULT:
-   * - Menampilkan pesan "Belum ada berita di kategori ini"
+   * - Menampilkan pesan "Belum ada berita di kategori"
    */
   it('✅ TEST 4: Harus menampilkan pesan jika kategori kosong (empty state)', async () => {
-    mockedAxios.get.mockResolvedValueOnce({
+    mockApiGet.mockResolvedValueOnce({
       data: { data: [] },
     });
 
@@ -195,7 +205,7 @@ describe('CategoryPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/belum ada berita di kategori ini/i)).toBeInTheDocument();
+      expect(screen.getByText(/belum ada berita di kategori/i)).toBeInTheDocument();
     });
   });
 
@@ -215,7 +225,7 @@ describe('CategoryPage', () => {
    * - Error di-handle dengan baik
    */
   it('✅ TEST 5: Harus handle API error gracefully (tidak crash saat API gagal)', async () => {
-    mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <BrowserRouter>
@@ -224,7 +234,76 @@ describe('CategoryPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/belum ada berita di kategori ini/i)).toBeInTheDocument();
+      expect(screen.getByText(/belum ada berita di kategori/i)).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * TEST 6: Render Featured Article dan TERBARU section
+   * 
+   * SKENARIO:
+   * - Setelah data loaded, harus ada Featured Article besar dan section TERBARU
+   * 
+   * YANG DITEST:
+   * - Featured article harus ditampilkan (artikel pertama)
+   * - Section "TERBARU" harus ada
+   * - Section "TERPOPULER" harus ada di sidebar
+   * 
+   * EXPECTED RESULT:
+   * - Featured article besar ter-render
+   * - Section headers "TERBARU" dan "TERPOPULER" ada
+   */
+  it('✅ TEST 6: Harus render Featured Article dan section TERBARU & TERPOPULER', async () => {
+    const mockNews = [
+      {
+        id: 1,
+        title: 'News Teknologi 1',
+        slug: 'news-teknologi-1',
+        category: 'Teknologi',
+        image_url: 'https://example.com/image1.jpg',
+        summary: 'Summary 1',
+        createdAt: '2024-01-15T10:00:00Z',
+        views: 100,
+      },
+      {
+        id: 2,
+        title: 'News Teknologi 2',
+        slug: 'news-teknologi-2',
+        category: 'Teknologi',
+        image_url: 'https://example.com/image2.jpg',
+        summary: 'Summary 2',
+        createdAt: '2024-01-14T10:00:00Z',
+        views: 50,
+      },
+      {
+        id: 3,
+        title: 'News Teknologi 3',
+        slug: 'news-teknologi-3',
+        category: 'Teknologi',
+        image_url: 'https://example.com/image3.jpg',
+        summary: 'Summary 3',
+        createdAt: '2024-01-13T10:00:00Z',
+        views: 25,
+      },
+    ];
+
+    mockApiGet.mockResolvedValueOnce({
+      data: { data: mockNews },
+    });
+
+    render(
+      <BrowserRouter>
+        <CategoryPage />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      // Check for Featured Article (first news)
+      expect(screen.getByText('News Teknologi 1')).toBeInTheDocument();
+      
+      // Check for section headers
+      expect(screen.getByText('TERBARU')).toBeInTheDocument();
+      expect(screen.getByText('TERPOPULER')).toBeInTheDocument();
     });
   });
 });

@@ -71,21 +71,37 @@ export const getPublishedNews = async (req, res) => {
     const { category, limit } = req.query;
 
     const where = { status: 'published' };
+    
+    // If category filter exists, filter by category name
     if (category) {
-      where['$Category.name$'] = category;
+      // First, find the category to validate it exists
+      try {
+        const categoryObj = await Category.findOne({ where: { name: category } });
+        if (!categoryObj) {
+          // Return empty array if category doesn't exist
+          return successResponse(res, 'Berita untuk kategori ini tidak ditemukan.', []);
+        }
+        where.categoryId = categoryObj.categoryId;
+      } catch (catErr) {
+        console.error('❌ Error finding category:', catErr);
+        // If category lookup fails, return empty array
+        return successResponse(res, 'Kategori tidak ditemukan.', []);
+      }
     }
+
+    const includeOptions = [
+      {
+        model: Category,
+        as: 'Category',
+        attributes: ['name'],
+        required: false, // Use LEFT JOIN to avoid errors
+      },
+    ];
 
     const news = await News.findAll({
       where,
       order: [['publishedAt', 'DESC']],
-      include: [
-        {
-          model: Category,
-          as: 'Category',
-          attributes: ['name'],
-          required: true,
-        },
-      ],
+      include: includeOptions,
       ...(limit && !isNaN(limit) ? { limit: parseInt(limit) } : {}),
     });
 
@@ -103,6 +119,7 @@ export const getPublishedNews = async (req, res) => {
     return successResponse(res, 'Berhasil mengambil berita untuk user.', formatted);
   } catch (err) {
     console.error('❌ Error getPublishedNews:', err);
+    console.error('❌ Error stack:', err.stack);
     return errorResponse(res, 'Gagal mengambil berita.', err.message, 500);
   }
 };
@@ -134,6 +151,7 @@ export const getPublicNewsBySlug = async (req, res) => {
       category: news.Category?.name || '-',
       createdAt: news.publishedAt,
       slug: news.slug,
+      views: news.views || 0,
     });
   } catch (err) {
     console.error('❌ Error getPublicNewsBySlug:', err);
@@ -362,16 +380,26 @@ export const getPopularNews = async (req, res) => {
 export const incrementViews = async (req, res) => {
   try {
     const { id } = req.params;
-    const news = await News.findByPk(id);
+    // Pastikan id adalah integer (findByPk menggunakan primary key newsId)
+    const newsId = parseInt(id, 10);
+    
+    if (isNaN(newsId)) {
+      return errorResponse(res, 'ID berita tidak valid.', null, 400);
+    }
+
+    const news = await News.findByPk(newsId);
 
     if (!news) {
       return errorResponse(res, 'Berita tidak ditemukan.', null, 404);
     }
 
-    news.views += 1;
+    // Pastikan views adalah number
+    news.views = (news.views || 0) + 1;
     await news.save();
 
-    return successResponse(res, 'Jumlah views berhasil ditambahkan.', { views: news.views });
+    return successResponse(res, 'Jumlah views berhasil ditambahkan.', { 
+      views: news.views 
+    });
   } catch (error) {
     console.error('❌ Gagal menambahkan views:', error);
     return errorResponse(res, 'Gagal menambahkan views.', error.message, 500);

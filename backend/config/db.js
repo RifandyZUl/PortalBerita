@@ -12,11 +12,16 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Membuat instance Sequelize dengan konfigurasi dari environment variables
 // Support DATABASE_URL for platforms like Railway, Render, Heroku
-const sequelize = process.env.DATABASE_URL
+const isProduction = process.env.NODE_ENV === 'production';
+const hasDatabaseUrl = !!process.env.DATABASE_URL;
+// SSL hanya diperlukan jika production DAN menggunakan DATABASE_URL (cloud database)
+const needsSSL = isProduction && hasDatabaseUrl;
+
+const sequelize = hasDatabaseUrl
   ? new Sequelize(process.env.DATABASE_URL, {
       dialect: 'postgres',
       dialectOptions: {
-        ssl: process.env.NODE_ENV === 'production' ? {
+        ssl: needsSSL ? {
           require: true,
           rejectUnauthorized: false
         } : false
@@ -33,10 +38,7 @@ const sequelize = process.env.DATABASE_URL
         dialect: 'postgres',       // Dialek database yang digunakan
         logging: process.env.NODE_ENV === 'development',
         dialectOptions: {
-          ssl: process.env.NODE_ENV === 'production' ? {
-            require: true,
-            rejectUnauthorized: false
-          } : false
+          ssl: false // Local database tidak perlu SSL
         }
       }
     );

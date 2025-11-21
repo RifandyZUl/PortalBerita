@@ -2,8 +2,8 @@ import { FaInstagram, FaGlobe } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-gray-200 text-sm pt-10 pb-6 mt-10">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 items-start">
+    <footer className="bg-gray-900 text-gray-200 text-sm pt-12 pb-8 mt-16 border-t border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 items-start">
         {/* Kolom 1: Tautan */}
         <div className="pl-4">
           <h3 className="font-semibold mb-4">TAUTAN</h3>
@@ -70,8 +70,15 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="mt-10 text-center text-gray-400 border-t border-gray-700 pt-4">
-        &copy; {new Date().getFullYear()} PT. WINNICODE GARUDA TEKNOLOGI. All rights reserved.
+      <div className="mt-12 text-center text-gray-400 border-t border-gray-700 pt-6">
+        <p>&copy; {new Date().getFullYear()} PT. WINNICODE GARUDA TEKNOLOGI. All rights reserved.</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
+          <a href="#" className="hover:text-white transition">Terms & Conditions</a>
+          <span>•</span>
+          <a href="#" className="hover:text-white transition">Privacy Policy</a>
+          <span>•</span>
+          <a href="#" className="hover:text-white transition">Contact Us</a>
+        </div>
       </div>
     </footer>
   );

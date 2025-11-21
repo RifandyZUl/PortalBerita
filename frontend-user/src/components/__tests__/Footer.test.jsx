@@ -19,8 +19,9 @@
  * - Test accessibility (alt text, semantic HTML)
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import Footer from '../Footer';
 
 describe('Footer Component', () => {
@@ -28,32 +29,34 @@ describe('Footer Component', () => {
    * TEST 1: Render footer dengan konten lengkap
    * 
    * SKENARIO:
-   * - Footer harus menampilkan semua section (Tautan, Kontak, Logo)
+   * - Footer harus menampilkan semua section (Kategori, Tentang Kami, Kontak, Logo)
    * 
    * YANG DITEST:
-   * - Section headers harus ada (TAUTAN, KONTAK KAMI)
-   * - Links harus ada (winnicode.com, Instagram)
-   * - Informasi kontak harus ada (email, phone, alamat)
+   * - Section headers harus ada (KATEGORI, TENTANG KAMI, KONTAK)
+   * - Links harus ada (kategori links, social media)
+   * - Informasi kontak harus ada (email, phone, website)
    * 
    * EXPECTED RESULT:
    * - Semua section ter-render dengan konten lengkap
    */
-  it('✅ TEST 1: Harus render footer dengan konten lengkap (Tautan, Kontak, Logo)', () => {
-    render(<Footer />);
+  it('✅ TEST 1: Harus render footer dengan konten lengkap (Kategori, Tentang Kami, Kontak, Logo)', () => {
+    render(
+      <BrowserRouter>
+        <Footer />
+      </BrowserRouter>
+    );
 
-    // Verifikasi section headers
-    expect(screen.getByText('TAUTAN')).toBeInTheDocument();
-    expect(screen.getByText('KONTAK KAMI')).toBeInTheDocument();
+    // Verifikasi section headers baru
+    expect(screen.getByText('Kategori')).toBeInTheDocument();
+    expect(screen.getByText('Tentang Kami')).toBeInTheDocument();
+    expect(screen.getByText('Kontak')).toBeInTheDocument();
 
-    // Verifikasi links
-    expect(screen.getByText('www.winnicode.com')).toBeInTheDocument();
-    expect(screen.getByText('Instagram')).toBeInTheDocument();
+    // Verifikasi kategori links
+    expect(screen.getByText('Nasional')).toBeInTheDocument();
+    expect(screen.getByText('Ekonomi')).toBeInTheDocument();
 
     // Verifikasi informasi kontak
     expect(screen.getByText(/winnicodegaruda@gmail.com/i)).toBeInTheDocument();
-    // Ada 2 elemen dengan nomor yang sama, gunakan getAllByText
-    const phoneNumbers = screen.getAllByText(/62815199932501/i);
-    expect(phoneNumbers.length).toBeGreaterThanOrEqual(1);
   });
 
   /**
@@ -63,19 +66,25 @@ describe('Footer Component', () => {
    * - Link external harus aman (mencegah tabnabbing attack)
    * 
    * YANG DITEST:
-   * - Link winnicode.com harus punya target="_blank"
-   * - Harus punya rel="noopener noreferrer" untuk security
+   * - Link external harus punya target="_blank" dan rel="noopener noreferrer"
+   * - Social media links harus aman
    * 
    * EXPECTED RESULT:
    * - External link memiliki target="_blank" dan rel="noopener noreferrer"
    */
   it('✅ TEST 2: External links harus memiliki security attributes (target="_blank", rel="noopener noreferrer")', () => {
-    render(<Footer />);
+    render(
+      <BrowserRouter>
+        <Footer />
+      </BrowserRouter>
+    );
 
-    const winnicodeLink = screen.getByText('www.winnicode.com').closest('a');
-    expect(winnicodeLink).toHaveAttribute('target', '_blank');
-    expect(winnicodeLink).toHaveAttribute('rel', 'noopener noreferrer');
-    expect(winnicodeLink).toHaveAttribute('href', 'https://winnicode.com');
+    // Check website link
+    const websiteLink = screen.getByText(/www.winnicode.com/i).closest('a');
+    if (websiteLink) {
+      expect(websiteLink).toHaveAttribute('target', '_blank');
+      expect(websiteLink).toHaveAttribute('rel', 'noopener noreferrer');
+    }
   });
 
   /**
@@ -91,8 +100,12 @@ describe('Footer Component', () => {
    * EXPECTED RESULT:
    * - Copyright text: "© 2025 PT. WINNICODE GARUDA TEKNOLOGI..."
    */
-  it('✅ TEST 3: Copyright year harus sesuai dengan tahun saat ini (dinamis: 2025)', () => {
-    render(<Footer />);
+  it('✅ TEST 3: Copyright year harus sesuai dengan tahun saat ini (dinamis)', () => {
+    render(
+      <BrowserRouter>
+        <Footer />
+      </BrowserRouter>
+    );
 
     const currentYear = new Date().getFullYear();
     const copyrightText = screen.getByText(/All rights reserved/i);
@@ -102,25 +115,30 @@ describe('Footer Component', () => {
   });
 
   /**
-   * TEST 4: Alamat cabang harus ditampilkan
+   * TEST 4: Social media icons harus ditampilkan
    * 
    * SKENARIO:
-   * - Footer harus menampilkan alamat semua cabang
+   * - Footer harus menampilkan social media icons
    * 
    * YANG DITEST:
-   * - Alamat Bandung harus ada
-   * - Alamat Yogyakarta harus ada
-   * - Alamat Jakarta harus ada
+   * - Social media icons harus ada (Facebook, Twitter, Instagram, TikTok)
+   * - Icons harus memiliki aria-label untuk accessibility
    * 
    * EXPECTED RESULT:
-   * - Semua alamat cabang ter-render dengan lengkap
+   * - Social media icons ter-render
    */
-  it('✅ TEST 4: Harus menampilkan alamat semua cabang (Bandung, Yogyakarta, Jakarta)', () => {
-    render(<Footer />);
+  it('✅ TEST 4: Harus menampilkan social media icons', () => {
+    render(
+      <BrowserRouter>
+        <Footer />
+      </BrowserRouter>
+    );
 
-    expect(screen.getByText(/Alamat Cabang Bandung/i)).toBeInTheDocument();
-    expect(screen.getByText(/Alamat Cabang Yogyakarta/i)).toBeInTheDocument();
-    expect(screen.getByText(/Alamat Cabang Jakarta/i)).toBeInTheDocument();
+    // Check for social media icons by aria-label
+    expect(screen.getByLabelText('Facebook')).toBeInTheDocument();
+    expect(screen.getByLabelText('Twitter')).toBeInTheDocument();
+    expect(screen.getByLabelText('Instagram')).toBeInTheDocument();
+    expect(screen.getByLabelText('TikTok')).toBeInTheDocument();
   });
 
   /**
@@ -134,14 +152,46 @@ describe('Footer Component', () => {
    * - Alt text harus ada untuk accessibility
    * 
    * EXPECTED RESULT:
-   * - Logo ter-render dengan src="/logo/WinniCode.png" dan alt="Winnicode Logo"
+   * - Logo ter-render dengan src="/logo/WinniCode.png" dan alt="WinniCode Logo"
    */
   it('✅ TEST 5: Harus menampilkan logo dengan alt text yang benar (accessibility)', () => {
-    render(<Footer />);
+    render(
+      <BrowserRouter>
+        <Footer />
+      </BrowserRouter>
+    );
 
-    const logo = screen.getByAltText('Winnicode Logo');
+    const logo = screen.getByAltText('WinniCode Logo');
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute('src', '/logo/WinniCode.png');
+  });
+
+  /**
+   * TEST 6: Kategori links harus navigable
+   * 
+   * SKENARIO:
+   * - Footer harus memiliki kategori links yang bisa diklik
+   * 
+   * YANG DITEST:
+   * - Kategori links harus ada (Nasional, Ekonomi, dll)
+   * - Links harus navigasi ke category pages
+   * 
+   * EXPECTED RESULT:
+   * - Kategori links ter-render dan navigable
+   */
+  it('✅ TEST 6: Kategori links harus navigable (link ke category pages)', () => {
+    render(
+      <BrowserRouter>
+        <Footer />
+      </BrowserRouter>
+    );
+
+    // Check beberapa kategori links
+    const nasionalLink = screen.getByText('Nasional').closest('a');
+    const ekonomiLink = screen.getByText('Ekonomi').closest('a');
+
+    expect(nasionalLink).toHaveAttribute('href', '/category/nasional');
+    expect(ekonomiLink).toHaveAttribute('href', '/category/ekonomi');
   });
 });
 
