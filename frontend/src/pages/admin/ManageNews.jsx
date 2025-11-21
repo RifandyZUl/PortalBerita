@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import NewsForm from '../../components/ManageNews/NewsForm';
 import ModalConfirm from '../../components/ModalConfirm';
@@ -27,11 +27,7 @@ const ManageNews = () => {
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
-     const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/news', {
-        headers: {
-          Authorization: `Bearer ${token}`, // ⬅️ PENTING
-        },
+      const res = await api.get('/api/news', {
         params: {
           page,
           limit,
@@ -69,10 +65,7 @@ const ManageNews = () => {
   const handleDelete = async () => {
     try {
       setDeletingId(pendingDeleteId);
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/news/${pendingDeleteId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/news/${pendingDeleteId}`);
 
       toast.success('Artikel berhasil dihapus.');
       fetchArticles();

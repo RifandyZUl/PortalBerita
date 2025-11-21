@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
+import { getBaseURL } from '../../utils/getBaseURL';
 
 const ProfileForm = ({ admin, photo, onProfileUpdated }) => {
   const {
@@ -34,8 +35,9 @@ const ProfileForm = ({ admin, photo, onProfileUpdated }) => {
     if (photo) formData.append('photo', photo); // ⬅️ pastikan ini dikirim
 
     try {
+      const baseURL = getBaseURL();
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/profile', {
+      const res = await fetch(`${baseURL}/api/admin/profile`, {
         method: 'PUT',
         body: formData,
         headers: {

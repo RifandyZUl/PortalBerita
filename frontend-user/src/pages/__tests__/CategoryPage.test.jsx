@@ -143,8 +143,9 @@ describe('CategoryPage', () => {
 
     await waitFor(() => {
       // Hanya news dengan kategori Teknologi yang ditampilkan
-      expect(screen.getByText('News Teknologi 1')).toBeInTheDocument();
-      expect(screen.getByText('News Teknologi 2')).toBeInTheDocument();
+      // News Teknologi 1 dan 2 muncul di featured dan TERPOPULER, gunakan getAllByText
+      expect(screen.getAllByText('News Teknologi 1').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('News Teknologi 2').length).toBeGreaterThan(0);
       // News Olahraga tidak boleh ditampilkan
       expect(screen.queryByText('News Olahraga')).not.toBeInTheDocument();
     });
@@ -298,12 +299,20 @@ describe('CategoryPage', () => {
     );
 
     await waitFor(() => {
-      // Check for Featured Article (first news)
-      expect(screen.getByText('News Teknologi 1')).toBeInTheDocument();
+      // Check for Featured Article (first news) - use getAllByText karena muncul di featured dan TERPOPULER
+      const newsTeknologi1Elements = screen.getAllByText('News Teknologi 1');
+      expect(newsTeknologi1Elements.length).toBeGreaterThan(0);
       
       // Check for section headers
-      expect(screen.getByText('TERBARU')).toBeInTheDocument();
-      expect(screen.getByText('TERPOPULER')).toBeInTheDocument();
+      // TERBARU hanya muncul jika newsList.length > 3, jadi kita cek "Terbaru" (bukan "TERBARU")
+      // Tapi karena kita punya 3 news, TERBARU tidak akan muncul
+      // Text di CategoryPage adalah "Terpopuler" bukan "TERPOPULER"
+      expect(screen.getByText('Terpopuler')).toBeInTheDocument();
+      
+      // Check for numbered items in TERPOPULER (01, 02, 03)
+      expect(screen.getByText('01')).toBeInTheDocument();
+      expect(screen.getByText('02')).toBeInTheDocument();
+      expect(screen.getByText('03')).toBeInTheDocument();
     });
   });
 });

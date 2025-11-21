@@ -39,7 +39,7 @@ describe('Footer Component', () => {
    * EXPECTED RESULT:
    * - Semua section ter-render dengan konten lengkap
    */
-  it('✅ TEST 1: Harus render footer dengan konten lengkap (Kategori, Tentang Kami, Kontak, Logo)', () => {
+  it('✅ TEST 1: Harus render footer dengan konten lengkap (TAUTAN, KONTAK KAMI, Logo)', () => {
     render(
       <BrowserRouter>
         <Footer />
@@ -47,16 +47,16 @@ describe('Footer Component', () => {
     );
 
     // Verifikasi section headers baru
-    expect(screen.getByText('Kategori')).toBeInTheDocument();
-    expect(screen.getByText('Tentang Kami')).toBeInTheDocument();
-    expect(screen.getByText('Kontak')).toBeInTheDocument();
-
-    // Verifikasi kategori links
-    expect(screen.getByText('Nasional')).toBeInTheDocument();
-    expect(screen.getByText('Ekonomi')).toBeInTheDocument();
+    expect(screen.getByText('TAUTAN')).toBeInTheDocument();
+    expect(screen.getByText('KONTAK KAMI')).toBeInTheDocument();
 
     // Verifikasi informasi kontak
     expect(screen.getByText(/winnicodegaruda@gmail.com/i)).toBeInTheDocument();
+    // Phone number muncul di beberapa tempat, gunakan getAllByText
+    expect(screen.getAllByText(/62815199932501/i).length).toBeGreaterThan(0);
+    
+    // Verifikasi logo
+    expect(screen.getByAltText('Winnicode Logo')).toBeInTheDocument();
   });
 
   /**
@@ -127,18 +127,16 @@ describe('Footer Component', () => {
    * EXPECTED RESULT:
    * - Social media icons ter-render
    */
-  it('✅ TEST 4: Harus menampilkan social media icons', () => {
+  it('✅ TEST 4: Harus menampilkan social media links', () => {
     render(
       <BrowserRouter>
         <Footer />
       </BrowserRouter>
     );
 
-    // Check for social media icons by aria-label
-    expect(screen.getByLabelText('Facebook')).toBeInTheDocument();
-    expect(screen.getByLabelText('Twitter')).toBeInTheDocument();
-    expect(screen.getByLabelText('Instagram')).toBeInTheDocument();
-    expect(screen.getByLabelText('TikTok')).toBeInTheDocument();
+    // Check for social media links (Instagram dan Website)
+    expect(screen.getByText('Instagram')).toBeInTheDocument();
+    expect(screen.getByText(/www.winnicode.com/i)).toBeInTheDocument();
   });
 
   /**
@@ -161,7 +159,7 @@ describe('Footer Component', () => {
       </BrowserRouter>
     );
 
-    const logo = screen.getByAltText('WinniCode Logo');
+    const logo = screen.getByAltText('Winnicode Logo');
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute('src', '/logo/WinniCode.png');
   });
@@ -179,19 +177,18 @@ describe('Footer Component', () => {
    * EXPECTED RESULT:
    * - Kategori links ter-render dan navigable
    */
-  it('✅ TEST 6: Kategori links harus navigable (link ke category pages)', () => {
+  it('✅ TEST 6: Harus menampilkan informasi alamat cabang', () => {
     render(
       <BrowserRouter>
         <Footer />
       </BrowserRouter>
     );
 
-    // Check beberapa kategori links
-    const nasionalLink = screen.getByText('Nasional').closest('a');
-    const ekonomiLink = screen.getByText('Ekonomi').closest('a');
-
-    expect(nasionalLink).toHaveAttribute('href', '/category/nasional');
-    expect(ekonomiLink).toHaveAttribute('href', '/category/ekonomi');
+    // Check alamat cabang
+    expect(screen.getByText(/Alamat Cabang Bandung/i)).toBeInTheDocument();
+    expect(screen.getByText(/Alamat Cabang Yogyakarta/i)).toBeInTheDocument();
+    expect(screen.getByText(/Alamat Cabang Jakarta/i)).toBeInTheDocument();
+    expect(screen.getByText(/Jl. Asia Afrika No.158/i)).toBeInTheDocument();
   });
 });
 

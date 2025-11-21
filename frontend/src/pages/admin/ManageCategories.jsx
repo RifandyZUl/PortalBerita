@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 import CategoryForm from '../../components/category/CategoryForm';
@@ -25,7 +25,7 @@ const ManageCategories = () => {
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/categories?page=${page}&limit=${limit}`);
+      const res = await api.get(`/api/categories?page=${page}&limit=${limit}`);
       setCategories(res.data.data.data || []);
       setTotalPages(res.data.data.totalPages || 1);
     } catch (err) {
@@ -43,18 +43,11 @@ const ManageCategories = () => {
   const handleSubmit = async (data) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       if (selectedCategory?.categoryId) {
-        await axios.put(
-          `http://localhost:5000/api/categories/${selectedCategory.categoryId}`,
-          data,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/categories/${selectedCategory.categoryId}`, data);
         toast.success('Kategori berhasil diperbarui!');
       } else {
-        await axios.post('http://localhost:5000/api/categories', data, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post('/api/categories', data);
         toast.success('Kategori berhasil ditambahkan!');
       }
 
@@ -83,10 +76,7 @@ const ManageCategories = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/categories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/categories/${id}`);
       toast.success('Kategori berhasil dihapus!');
       await fetchCategories();
     } catch (err) {

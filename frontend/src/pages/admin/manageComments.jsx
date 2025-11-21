@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import CommentCard from '@/components/comments/CommentCard';
 import ModalConfirm from '@/components/ModalConfirm';
@@ -18,7 +18,7 @@ const ManageComments = () => {
   const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/comments');
+      const res = await api.get('/api/comments');
       const data = res?.data?.data?.comments || [];
       setComments(data);
     } catch (err) {
@@ -53,7 +53,7 @@ const ManageComments = () => {
 
   const handleStatusUpdate = async (commentId, newStatus) => {
     try {
-      await axios.patch(`http://localhost:5000/api/comments/${commentId}/status`, {
+      await api.patch(`/api/comments/${commentId}/status`, {
         status: newStatus,
       });
 
@@ -74,9 +74,7 @@ const ManageComments = () => {
     if (!selectedCommentToDelete) return;
 
     try {
-      await axios.delete(
-        `http://localhost:5000/api/comments/${selectedCommentToDelete.commentId}`
-      );
+      await api.delete(`/api/comments/${selectedCommentToDelete.commentId}`);
 
       setComments((prev) =>
         prev.filter((c) => c.commentId !== selectedCommentToDelete.commentId)

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import TextEditor from '../RichTextEditor';
 import ModalConfirm from '../ModalConfirm';
 import ModalPreview from '../ModalPreview';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { ClipLoader } from 'react-spinners';
 
@@ -32,8 +32,8 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
     const fetchDropdownData = async () => {
       try {
         const [authorRes, categoryRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/authors'),
-          axios.get('http://localhost:5000/api/categories'),
+          api.get('/api/authors'),
+          api.get('/api/categories'),
         ]);
         setAuthors(authorRes.data.data);
         setCategories(categoryRes.data.data.data);
@@ -92,19 +92,16 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
     }
 
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      };
-
       let response;
       if (selectedArticle) {
-        response = await axios.put(
-          `http://localhost:5000/api/news/${selectedArticle.newsId}`,
+        response = await api.put(
+          `/api/news/${selectedArticle.newsId}`,
           payload,
-          config
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         );
         setArticles((prev) =>
           prev.map((item) =>
@@ -113,7 +110,11 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
         );
         toast.success('Artikel berhasil diperbarui!');
       } else {
-        response = await axios.post('http://localhost:5000/api/news', payload, config);
+        response = await api.post('/api/news', payload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
         setArticles((prev) => [response.data.data, ...prev]);
         toast.success('Artikel berhasil ditambahkan!');
       }

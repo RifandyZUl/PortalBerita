@@ -84,7 +84,7 @@ describe('Header Component', () => {
       </BrowserRouter>
     );
 
-    const searchInput = screen.getByPlaceholderText(/cari tokoh, topik atau peristiwa/i);
+    const searchInput = screen.getByPlaceholderText(/search/i);
     expect(searchInput).toBeInTheDocument();
   });
 
@@ -109,14 +109,14 @@ describe('Header Component', () => {
       </BrowserRouter>
     );
 
-    const searchInput = screen.getByPlaceholderText(/cari tokoh, topik atau peristiwa/i);
+    const searchInput = screen.getByPlaceholderText(/search/i);
     const searchForm = searchInput.closest('form');
 
     // Type search query
     await user.type(searchInput, 'teknologi');
     
-    // Submit form
-    await user.click(searchForm.querySelector('button[type="submit"]'));
+    // Submit form (press Enter)
+    await user.type(searchInput, '{enter}');
 
     // Verifikasi navigate dipanggil dengan query yang benar
     expect(mockNavigate).toHaveBeenCalledWith('/search?query=teknologi');
@@ -143,11 +143,11 @@ describe('Header Component', () => {
       </BrowserRouter>
     );
 
-    const searchInput = screen.getByPlaceholderText(/cari tokoh, topik atau peristiwa/i);
+    const searchInput = screen.getByPlaceholderText(/search/i);
     const searchForm = searchInput.closest('form');
 
-    // Submit tanpa mengetik
-    await user.click(searchForm.querySelector('button[type="submit"]'));
+    // Submit tanpa mengetik (press Enter)
+    await user.type(searchInput, '{enter}');
 
     // Navigate tidak boleh dipanggil
     expect(mockNavigate).not.toHaveBeenCalled();

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { removeToken, getToken } from '../../src/utils/token';
+import api from '../../utils/api';
 
 const Topbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -10,18 +11,11 @@ const Topbar = ({ onMenuClick }) => {
   useEffect(() => {
     const fetchAdmin = async () => {
       try {
-        const token = getToken();
-        const res = await fetch('http://localhost:5000/api/admin/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          setAdmin(data.admin);
+        const res = await api.get('/api/admin/profile');
+        if (res.data?.admin) {
+          setAdmin(res.data.admin);
         } else {
-          console.error('Gagal ambil admin:', data.message);
+          console.error('Gagal ambil admin:', res.data?.message);
         }
       } catch (err) {
         console.error('Gagal mengambil data admin:', err);

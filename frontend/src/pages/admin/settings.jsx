@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ProfileCard from '@/components/settings/ProfileCard';
 import ProfileForm from '@/components/settings/ProfileForm';
+import api from '../../utils/api';
 
 const Settings = () => {
   const [adminData, setAdminData] = useState(null);
@@ -10,16 +11,12 @@ const Settings = () => {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Gagal memuat profil');
-      setAdminData(data.admin);
+      const res = await api.get('/api/admin/profile');
+      if (res.data?.admin) {
+        setAdminData(res.data.admin);
+      } else {
+        throw new Error(res.data?.message || 'Gagal memuat profil');
+      }
     } catch (err) {
       console.error('Gagal mengambil data admin:', err);
       setAdminData(null);

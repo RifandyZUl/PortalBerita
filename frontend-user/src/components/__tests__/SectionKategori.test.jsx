@@ -24,8 +24,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import SectionKategori from '../SectionKategori';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock api
+const mockApiGet = vi.fn();
+vi.mock('@/utils/api', () => ({
+  default: {
+    get: mockApiGet,
+  },
+}));
 
 // Mock SectionTitle
 vi.mock('@/components/SectionTitle', () => ({
@@ -59,7 +64,7 @@ describe('SectionKategori Component', () => {
    * - Text "Memuat berita..." ter-render
    */
   it('✅ TEST 1: Harus menampilkan loading state (Memuat berita...)', () => {
-    global.fetch.mockImplementation(() => new Promise(() => {}));
+    mockApiGet.mockImplementation(() => new Promise(() => {}));
 
     render(
       <BrowserRouter>
@@ -107,8 +112,8 @@ describe('SectionKategori Component', () => {
       },
     ];
 
-    global.fetch.mockResolvedValueOnce({
-      json: async () => ({ data: mockNews }),
+    mockApiGet.mockResolvedValueOnce({
+      data: { data: mockNews },
     });
 
     render(
@@ -137,8 +142,8 @@ describe('SectionKategori Component', () => {
    * - Menampilkan "Tidak ada berita hiburan tersedia" atau "Tidak ada berita teknologi tersedia"
    */
   it('✅ TEST 3: Harus menampilkan pesan jika kategori kosong (empty state)', async () => {
-    global.fetch.mockResolvedValueOnce({
-      json: async () => ({ data: [] }),
+    mockApiGet.mockResolvedValueOnce({
+      data: { data: [] },
     });
 
     render(
@@ -169,7 +174,7 @@ describe('SectionKategori Component', () => {
    * - Error di-handle dengan baik
    */
   it('✅ TEST 4: Harus handle API error gracefully (tidak crash saat API gagal)', async () => {
-    global.fetch.mockRejectedValueOnce(new Error('API Error'));
+    mockApiGet.mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <BrowserRouter>
@@ -179,7 +184,8 @@ describe('SectionKategori Component', () => {
 
     await waitFor(() => {
       // Tidak boleh crash, harus render dengan empty state
-      expect(screen.queryByTestId('skeleton-loader')).not.toBeInTheDocument();
+      expect(screen.getByText(/tidak ada berita hiburan tersedia/i)).toBeInTheDocument();
+      expect(screen.getByText(/tidak ada berita teknologi tersedia/i)).toBeInTheDocument();
     });
   });
 });

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Eye, MessageCircle, FileText } from 'lucide-react';
 import PageWrapper from '../../components/PageWrapper';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { getBaseURL } from '../../utils/getBaseURL';
 
 const stripHtml = (html) => {
   const tmp = document.createElement('div');
@@ -57,14 +58,16 @@ const Dashboard = () => {
   const [articleTotalPages, setArticleTotalPages] = useState(1);
   const [commentTotalPages, setCommentTotalPages] = useState(1);
 
+  const baseURL = getBaseURL();
+
   const fetchStats = async (headers) => {
-    const res = await fetch('http://localhost:5000/api/dashboard/stats', { headers });
+    const res = await fetch(`${baseURL}/api/dashboard/stats`, { headers });
     const data = await res.json();
     if (res.ok) setStats(data.data || {});
   };
 
   const fetchArticles = async (headers, page = 1, limit = 5) => {
-    const res = await fetch(`http://localhost:5000/api/dashboard/articles?page=${page}&limit=${limit}`, { headers });
+    const res = await fetch(`${baseURL}/api/dashboard/articles?page=${page}&limit=${limit}`, { headers });
     const data = await res.json();
     if (res.ok) {
       setArticles(data.data?.articles || []);
@@ -73,7 +76,7 @@ const Dashboard = () => {
   };
 
   const fetchComments = async (headers, page = 1, limit = 5) => {
-    const res = await fetch(`http://localhost:5000/api/dashboard/comments?page=${page}&limit=${limit}`, { headers });
+    const res = await fetch(`${baseURL}/api/dashboard/comments?page=${page}&limit=${limit}`, { headers });
     const data = await res.json();
     if (res.ok) {
       setComments(data.data?.comments || []);
