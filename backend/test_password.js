@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 
-const plainPassword = 'admin12345';
-const hashedPassword = '$2b$10$t3YhPw6yRWkIKLMRTjuA3e6XF96JDyJw4JYKheXhW9wI.ogi9aZAe'; // copy dari database
+const plainPassword = 'admin123';
+const hashedPassword = '$2b$10$mEGjJVVQN9EowtXvaAu7GuJ8XwLRwSgZVwZM18aTWZCbFsYgb4Eju'; 
 
 const match = await bcrypt.compare(plainPassword, hashedPassword);
 console.log('Password cocok?', match);

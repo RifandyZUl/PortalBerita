@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <footer className="bg-gray-900 text-gray-200 text-sm pt-12 pb-8 mt-16 border-t border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 items-start">
-        {/* Kolom 1: Tautan */}
+
         <div className="pl-4">
           <h3 className="font-semibold mb-4">TAUTAN</h3>
           <ul className="space-y-2">
