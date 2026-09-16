@@ -2,8 +2,18 @@
 import axios from 'axios';
 import { handleApiError, isUnauthorizedError } from './errorHandler.js';
 
-// Gunakan VITE_API_URL jika ada, jika tidak gunakan path relatif (untuk development)
-const baseURL = import.meta.env.VITE_API_URL || '';
+// Gunakan VITE_API_URL jika ada, jika tidak di production gunakan URL backend Vercel
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (import.meta.env.MODE === 'production' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'))) {
+    return 'https://portal-berita-backend-pi.vercel.app';
+  }
+  return '';
+};
+
+const baseURL = getBaseURL();
 
 // Buat instance axios dengan baseURL
 const api = axios.create({
