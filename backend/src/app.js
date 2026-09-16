@@ -81,6 +81,70 @@ app.get(['/health', '/api/health'], (req, res) => {
   });
 });
 
+// ===== DATABASE INITIALIZATION & SEEDING ROUTE ===== //
+app.get('/api/init-database', async (req, res) => {
+  try {
+    const db = (await import('./infrastructure/database/models/index.js')).default;
+    const bcrypt = (await import('bcryptjs')).default;
+
+    // 1. Sync all tables
+    await Promise.all([
+      db.Admin.sync({ alter: true }),
+      db.Author.sync({ alter: true }),
+      db.Category.sync({ alter: true }),
+      db.News.sync({ alter: true }),
+      db.Comment.sync({ alter: true }),
+    ]);
+
+    // 2. Create default Admin
+    const hashedPassword = await bcrypt.hash('admin12345', 10);
+    const [admin, adminCreated] = await db.Admin.findOrCreate({
+      where: { username: 'admin_super' },
+      defaults: {
+        username: 'admin_super',
+        email: 'admin@portalberita.com',
+        password: hashedPassword,
+        firstName: 'Super',
+        lastName: 'Admin',
+        bio: 'Administrator Portal Berita'
+      }
+    });
+
+    // 3. Seed default Categories if empty
+    const categoryCount = await db.Category.count();
+    let seededCategories = 0;
+    if (categoryCount === 0) {
+      const defaultCategories = [
+        { name: 'Teknologi', slug: 'teknologi' },
+        { name: 'Politik', slug: 'politik' },
+        { name: 'Ekonomi', slug: 'ekonomi' },
+        { name: 'Olahraga', slug: 'olahraga' },
+        { name: 'Hiburan', slug: 'hiburan' }
+      ];
+      await db.Category.bulkCreate(defaultCategories);
+      seededCategories = defaultCategories.length;
+    }
+
+    res.json({
+      success: true,
+      message: 'Database berhasil disinkronisasi dan diinisialisasi!',
+      data: {
+        admin: {
+          username: admin.username,
+          email: admin.email,
+          created: adminCreated
+        },
+        defaultCategoriesCount: seededCategories
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal inisialisasi database: ' + error.message
+    });
+  }
+});
+
 // ===== ROUTES ===== //
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
