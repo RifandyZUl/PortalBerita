@@ -61,24 +61,38 @@ const fileFormat = winston.format.combine(
   winston.format.json()
 );
 
+import fs from 'fs';
+
 // Define transports
 const transports = [
   // Console transport
   new winston.transports.Console({
     format,
   }),
-  // Error log file
-  new winston.transports.File({
-    filename: path.join(__dirname, '../../logs/error.log'),
-    level: 'error',
-    format: fileFormat,
-  }),
-  // Combined log file (all logs)
-  new winston.transports.File({
-    filename: path.join(__dirname, '../../logs/combined.log'),
-    format: fileFormat,
-  }),
 ];
+
+// Only enable file transports in non-serverless environments (Vercel is read-only)
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  try {
+    const logsDir = path.join(__dirname, '../../logs');
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    transports.push(
+      new winston.transports.File({
+        filename: path.join(logsDir, 'error.log'),
+        level: 'error',
+        format: fileFormat,
+      }),
+      new winston.transports.File({
+        filename: path.join(logsDir, 'combined.log'),
+        format: fileFormat,
+      })
+    );
+  } catch (err) {
+    // Graceful fallback to console only
+  }
+}
 
 // Create the logger
 const logger = winston.createLogger({
@@ -89,13 +103,6 @@ const logger = winston.createLogger({
   // Do not exit on handled exceptions
   exitOnError: false,
 });
-
-// Create logs directory if it doesn't exist
-import fs from 'fs';
-const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
 
 /**
  * Log error with context
