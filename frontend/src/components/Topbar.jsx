@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
-import { removeToken, getToken } from '../utils/token';
+import { removeToken } from '../utils/token';
 import api from '../utils/api';
 
 const Topbar = ({ onMenuClick }) => {
@@ -12,13 +12,20 @@ const Topbar = ({ onMenuClick }) => {
     const fetchAdmin = async () => {
       try {
         const res = await api.get('/api/admin/profile');
-        if (res.data?.admin) {
-          setAdmin(res.data.admin);
+        // Response structure: { success: true, message: "...", data: { admin: {...} } }
+        if (res.data?.success && res.data?.data?.admin) {
+          setAdmin(res.data.data.admin);
         } else {
-          console.error('Gagal ambil admin:', res.data?.message);
+          // Hanya log error jika benar-benar error, bukan jika response sukses tapi struktur berbeda
+          if (!res.data?.success) {
+            console.error('Gagal ambil admin:', res.data?.message || 'Unknown error');
+          }
         }
       } catch (err) {
-        console.error('Gagal mengambil data admin:', err);
+        // Hanya log error jika request benar-benar gagal (network error, 401, dll)
+        if (err.response?.status !== 401) {
+          console.error('Gagal mengambil data admin:', err.response?.data?.message || err.message);
+        }
       }
     };
 
@@ -54,6 +61,8 @@ const Topbar = ({ onMenuClick }) => {
               src={admin.photo}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover border"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
             />
           </>
         )}

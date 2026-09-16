@@ -51,8 +51,9 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock utils
-vi.mock('../../utils/time', () => ({
-  formatWaktuLalu: (date) => '2 hari yang lalu',
+vi.mock('@/utils/dateFormatter.js', () => ({
+  formatDate: (date) => '15 Januari 2024',
+  formatTimeAgo: (date) => '2 hari yang lalu',
 }));
 
 describe('CategoryPage', () => {

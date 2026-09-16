@@ -17,19 +17,25 @@ export default defineConfig({
     root: '.',
     include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
-    // Reporter untuk output yang lebih informatif di UI
+    // Reporter untuk output yang lebih informatif
     reporters: ['verbose'],
-    // Gunakan single thread untuk sequential execution dan menghindari timeout
+    // Gunakan threads untuk performa yang lebih baik (multiple threads, tapi lebih konservatif)
     pool: 'threads',
     poolOptions: {
       threads: {
-        singleThread: true, // Sequential execution (satu per satu)
+        minThreads: 1,
+        maxThreads: 2, // Gunakan 2 threads untuk balance antara speed dan stability
       },
     },
-    // Sequential execution untuk melihat test satu per satu
+    // Test dalam file berjalan sequential untuk menghindari race conditions
     sequence: {
-      concurrent: false, // Pastikan test berjalan sequential
+      concurrent: false, // Test dalam file sequential untuk stability
+      shuffle: false,
     },
+    fileParallelism: true, // Multiple test files bisa berjalan parallel
+    // Increase timeout untuk test yang kompleks
+    testTimeout: 10000,
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {

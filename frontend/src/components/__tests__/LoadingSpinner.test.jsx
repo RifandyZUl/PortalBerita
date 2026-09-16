@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import LoadingSpinner from '../LoadingSpinner';
 
 describe('LoadingSpinner', () => {
-  it('✅ Harus render spinner dengan benar', () => {
+  it('should render spinner correctly', () => {
     const { container } = render(<LoadingSpinner />);
     
     const spinner = container.querySelector('.animate-spin');
@@ -11,7 +11,7 @@ describe('LoadingSpinner', () => {
     expect(spinner).toHaveClass('border-blue-500');
   });
 
-  it('✅ Harus memiliki struktur HTML yang benar', () => {
+  it('should have correct HTML structure', () => {
     const { container } = render(<LoadingSpinner />);
     
     const wrapper = container.querySelector('.flex.justify-center.items-center');
@@ -21,4 +21,3 @@ describe('LoadingSpinner', () => {
     expect(spinner).toBeInTheDocument();
   });
 });
-

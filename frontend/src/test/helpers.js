@@ -30,7 +30,7 @@ export const setupAxiosMocks = () => {
 /**
  * Mock untuk NewsForm dengan default props
  */
-export const mockNewsForm = vi.fn(({ selectedArticle, setSelectedArticle, setArticles, onSuccess }) => {
+export const mockNewsForm = vi.fn(({ selectedArticle }) => {
   return (
     <div data-testid="news-form">
       <div>News Form</div>
@@ -42,7 +42,7 @@ export const mockNewsForm = vi.fn(({ selectedArticle, setSelectedArticle, setArt
 /**
  * Mock untuk CategoryForm dengan default props
  */
-export const mockCategoryForm = vi.fn(({ onSubmit, defaultValues, onCancel, allCategories, loading }) => {
+export const mockCategoryForm = vi.fn(({ defaultValues }) => {
   return (
     <div data-testid="category-form">
       <div>Category Form</div>

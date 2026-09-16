@@ -24,6 +24,8 @@ const ModalPreview = ({ isOpen, onClose, data }) => {
             src={typeof image === 'string' ? image : URL.createObjectURL(image)}
             alt="Preview"
             className="w-full max-h-[390px] object-contain rounded mb-4"
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
         />
         )}
 

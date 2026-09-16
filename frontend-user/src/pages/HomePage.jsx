@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '@/utils/api';
+import { getPublishedNews, getPopularNews } from '@/services/news.service.js';
+import { formatDate } from '@/utils/dateFormatter.js';
+import NewsImage from '@/components/NewsImage.jsx';
 import PopularGrid from '@/components/PopularGrid';
 import SectionKategori from '@/components/SectionKategori';
 import SkeletonLoader from '@/components/SkeletonLoader';
-
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 const HomePage = () => {
   const [popularNews, setPopularNews] = useState([]);
@@ -26,19 +20,19 @@ const HomePage = () => {
 
     const fetchData = async () => {
       try {
-        const [popularRes, latestRes, nasionalRes, olahragaRes, internationalRes] = await Promise.all([
-          api.get('/api/news/popular').catch(() => ({ data: { data: [] } })),
-          api.get('/api/news/public/list?limit=10').catch(() => ({ data: { data: [] } })),
-          api.get('/api/news/public/list?category=Nasional&limit=10').catch(() => ({ data: { data: [] } })),
-          api.get('/api/news/public/list?category=Olahraga&limit=10').catch(() => ({ data: { data: [] } })),
-          api.get('/api/news/public/list?category=International&limit=5').catch(() => ({ data: { data: [] } })),
+        const [popularData, latestData, nasionalData, olahragaData, internationalData] = await Promise.all([
+          getPopularNews(5).catch(() => []),
+          getPublishedNews({ limit: 10 }).catch(() => []),
+          getPublishedNews({ category: 'Nasional', limit: 10 }).catch(() => []),
+          getPublishedNews({ category: 'Olahraga', limit: 10 }).catch(() => []),
+          getPublishedNews({ category: 'International', limit: 5 }).catch(() => []),
         ]);
 
-        setPopularNews(popularRes.data?.data || []);
-        setLatestNews(latestRes.data?.data || []);
-        setNasional(nasionalRes.data?.data || []);
-        setOlahraga(olahragaRes.data?.data || []);
-        setInternational(internationalRes.data?.data || []);
+        setPopularNews(popularData || []);
+        setLatestNews(latestData || []);
+        setNasional(nasionalData || []);
+        setOlahraga(olahragaData || []);
+        setInternational(internationalData || []);
       } catch (err) {
         console.error('❌ Gagal mengambil data berita:', err);
       } finally {
@@ -87,20 +81,15 @@ const HomePage = () => {
                 <p className="text-sm text-gray-500 italic py-8">Belum ada berita terbaru.</p>
               ) : (
                 <div className="space-y-4">
-                  {latestNews.slice(0, 8).map((news, index) => (
+                  {latestNews.slice(0, 8).map((news) => (
                     <Link
                       key={news.id || news.slug}
                       to={`/news/${news.slug}`}
                       className="flex gap-4 group border-b border-gray-100 pb-4 hover:bg-gray-50 p-2 -m-2 rounded transition"
                     >
                       <div className="flex-shrink-0 w-32 h-24 rounded bg-gray-100 overflow-hidden flex items-center justify-center">
-                        <img
-                          loading="lazy"
-                          src={news.image_url || '/image/fallback.jpg'}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/image/fallback.jpg';
-                          }}
+                        <NewsImage
+                          src={news.image_url}
                           alt={news.title}
                           className="w-full h-full object-contain bg-gray-50"
                         />
@@ -148,13 +137,8 @@ const HomePage = () => {
                             ? 'w-full h-48' 
                             : 'w-32 h-24 flex-shrink-0'
                         }`}>
-                          <img
-                            loading="lazy"
-                            src={news.image_url || '/image/fallback.jpg'}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = '/image/fallback.jpg';
-                            }}
+                          <NewsImage
+                            src={news.image_url}
                             alt={news.title}
                             className="w-full h-full object-contain bg-gray-50"
                           />
@@ -202,13 +186,8 @@ const HomePage = () => {
                             ? 'w-full h-48' 
                             : 'w-32 h-24 flex-shrink-0'
                         }`}>
-                          <img
-                            loading="lazy"
-                            src={news.image_url || '/image/fallback.jpg'}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = '/image/fallback.jpg';
-                            }}
+                          <NewsImage
+                            src={news.image_url}
                             alt={news.title}
                             className="w-full h-full object-contain bg-gray-50"
                           />
@@ -251,13 +230,8 @@ const HomePage = () => {
                       className="group"
                     >
                       <div className="w-full h-40 rounded bg-gray-100 mb-2 overflow-hidden flex items-center justify-center">
-                        <img
-                          loading="lazy"
-                          src={news.image_url || '/image/fallback.jpg'}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/image/fallback.jpg';
-                          }}
+                        <NewsImage
+                          src={news.image_url}
                           alt={news.title}
                           className="w-full h-full object-contain bg-gray-50"
                         />

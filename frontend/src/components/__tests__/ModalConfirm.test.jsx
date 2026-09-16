@@ -12,77 +12,76 @@ describe('ModalConfirm', () => {
     cleanup();
   });
 
-  it('✅ Harus tidak render jika isOpen adalah false', () => {
-    render(
-      <ModalConfirm
-        isOpen={false}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-        title="Test Title"
-        message="Test Message"
-      />
-    );
+  describe('Visibility', () => {
+    it('should not render when isOpen is false', () => {
+      render(
+        <ModalConfirm
+          isOpen={false}
+          onConfirm={vi.fn()}
+          onCancel={vi.fn()}
+          title="Test Title"
+          message="Test Message"
+        />
+      );
 
-    expect(screen.queryByText('Test Title')).not.toBeInTheDocument();
+      expect(screen.queryByText('Test Title')).not.toBeInTheDocument();
+    });
+
+    it('should render when isOpen is true', () => {
+      render(
+        <ModalConfirm
+          isOpen={true}
+          onConfirm={vi.fn()}
+          onCancel={vi.fn()}
+          title="Test Title"
+          message="Test Message"
+        />
+      );
+
+      expect(screen.getByText('Test Title')).toBeInTheDocument();
+      expect(screen.getByText('Test Message')).toBeInTheDocument();
+    });
   });
 
-  it('✅ Harus render jika isOpen adalah true', () => {
-    render(
-      <ModalConfirm
-        isOpen={true}
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-        title="Test Title"
-        message="Test Message"
-      />
-    );
+  describe('User Interactions', () => {
+    it('should call onConfirm when confirm button is clicked', async () => {
+      const user = userEvent.setup();
+      const mockOnConfirm = vi.fn();
 
-    expect(screen.getByText('Test Title')).toBeInTheDocument();
-    expect(screen.getByText('Test Message')).toBeInTheDocument();
-  });
+      render(
+        <ModalConfirm
+          isOpen={true}
+          onConfirm={mockOnConfirm}
+          onCancel={vi.fn()}
+          title="Test Title"
+          message="Test Message"
+        />
+      );
 
-  it('✅ Harus memanggil onConfirm ketika tombol confirm diklik', async () => {
-    const user = userEvent.setup();
-    const mockOnConfirm = vi.fn();
+      const confirmButton = screen.getByRole('button', { name: /hapus/i });
+      await user.click(confirmButton);
 
-    render(
-      <ModalConfirm
-        isOpen={true}
-        onConfirm={mockOnConfirm}
-        onCancel={vi.fn()}
-        title="Test Title"
-        message="Test Message"
-      />
-    );
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
 
-    // Gunakan getAllByRole karena mungkin ada multiple buttons dari test lain
-    const confirmButtons = screen.getAllByRole('button', { name: /hapus/i });
-    expect(confirmButtons.length).toBeGreaterThan(0);
-    await user.click(confirmButtons[0]);
+    it('should call onCancel when cancel button is clicked', async () => {
+      const user = userEvent.setup();
+      const mockOnCancel = vi.fn();
 
-    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-  });
+      render(
+        <ModalConfirm
+          isOpen={true}
+          onConfirm={vi.fn()}
+          onCancel={mockOnCancel}
+          title="Test Title"
+          message="Test Message"
+        />
+      );
 
-  it('✅ Harus memanggil onCancel ketika tombol cancel diklik', async () => {
-    const user = userEvent.setup();
-    const mockOnCancel = vi.fn();
+      const cancelButton = screen.getByRole('button', { name: /batal/i });
+      await user.click(cancelButton);
 
-    render(
-      <ModalConfirm
-        isOpen={true}
-        onConfirm={vi.fn()}
-        onCancel={mockOnCancel}
-        title="Test Title"
-        message="Test Message"
-      />
-    );
-
-    // Gunakan getAllByRole karena mungkin ada multiple buttons dari test lain
-    const cancelButtons = screen.getAllByRole('button', { name: /batal/i });
-    expect(cancelButtons.length).toBeGreaterThan(0);
-    await user.click(cancelButtons[0]);
-
-    expect(mockOnCancel).toHaveBeenCalledTimes(1);
+      expect(mockOnCancel).toHaveBeenCalledTimes(1);
+    });
   });
 });
-

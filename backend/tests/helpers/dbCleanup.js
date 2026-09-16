@@ -1,4 +1,4 @@
-import db from '../../models/index.js';
+import db from '../../src/infrastructure/database/models/index.js';
 const { sequelize, Admin, Author, Category, News, Comment } = db;
 
 // Lock mechanism untuk memastikan hanya satu cleanup yang berjalan pada satu waktu

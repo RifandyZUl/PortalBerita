@@ -6,10 +6,6 @@ import Underline from '@tiptap/extension-underline';
 import TextStyle from '@tiptap/extension-text-style';
 import FontSize from 'tiptap-extension-font-size';
 import TextAlign from '@tiptap/extension-text-align';
-import BulletList from '@tiptap/extension-bullet-list';
-import OrderedList from '@tiptap/extension-ordered-list';
-import ListItem from '@tiptap/extension-list-item';
-import Blockquote from '@tiptap/extension-blockquote';
 import Link from '@tiptap/extension-link';
 import Heading from '@tiptap/extension-heading';
 import { LineHeight } from '../extensions/LineHeight';
@@ -127,17 +123,17 @@ const MenuBar = ({ editor }) => {
 const RichTextEditor = ({ content, onChange }) => {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: false }),
+      StarterKit.configure({ 
+        heading: false,
+        // StarterKit sudah include bulletList, orderedList, listItem, dan blockquote
+        // Jadi tidak perlu di-import lagi secara terpisah
+      }),
       Heading.configure({ levels: [1, 2, 3] }),
       Underline,
       TextStyle,
       FontSize,
       LineHeight,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      BulletList,
-      OrderedList,
-      ListItem,
-      Blockquote,
       Link,
     ],
     content,

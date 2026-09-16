@@ -6,7 +6,28 @@
  */
 
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeAll, afterAll } from 'vitest';
+
+// Suppress console.error untuk expected errors di error handling tests
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args) => {
+    // Suppress error messages yang expected dari error handling tests
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Gagal mengambil') ||
+       args[0].includes('Error saat mengambil') ||
+       args[0].includes('Terjadi kesalahan'))
+    ) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
 
 // Mock window.matchMedia (untuk components yang menggunakan media queries)
 Object.defineProperty(window, 'matchMedia', {
@@ -24,6 +45,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver (untuk components yang menggunakan intersection observer)
+// eslint-disable-next-line no-undef
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}

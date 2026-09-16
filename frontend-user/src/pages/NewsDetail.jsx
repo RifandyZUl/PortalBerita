@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { getNewsBySlug, incrementViews } from '@/services/news.service.js';
+import { formatDate } from '@/utils/dateFormatter.js';
+import NewsImage from '@/components/NewsImage.jsx';
 import api from '@/utils/api';
-// import { getResizedImage } from '../../utils/imageTransform';
 import SkeletonLoader from '@/components/SkeletonLoader';
 
 const NewsDetail = () => {
@@ -17,8 +19,8 @@ const NewsDetail = () => {
   useEffect(() => {
     const fetchNewsDetail = async () => {
       try {
-        const response = await api.get(`/api/news/public/detail/${slug}`);
-        setNews(response.data.data);
+        const data = await getNewsBySlug(slug);
+        setNews(data);
       } catch (error) {
         console.error('❌ Gagal mengambil detail berita:', error);
       } finally {
@@ -32,27 +34,13 @@ const NewsDetail = () => {
   useEffect(() => {
     const addView = async () => {
       if (news?.id && !hasAddedView) {
-        console.log('🟢 Menambahkan views ke newsId:', news.id);
         try {
-          const res = await api.patch(`/api/news/${news.id}/views`);
-          console.log('✅ PATCH response:', res.data);
-
-          // Update views dari response backend (lebih akurat)
-          const updatedViews = res.data?.data?.views;
-          if (updatedViews !== undefined) {
-            setNews((prev) => ({ 
-              ...prev, 
-              views: updatedViews 
-            }));
-          } else {
-            // Fallback: tambah views secara lokal jika response tidak ada
-            setNews((prev) => ({ 
-              ...prev, 
-              views: (prev.views || 0) + 1 
-            }));
-          }
-
-          
+          await incrementViews(news.id);
+          // Update views secara lokal
+          setNews((prev) => ({ 
+            ...prev, 
+            views: (prev.views || 0) + 1 
+          }));
           setHasAddedView(true);
         } catch (error) {
           console.error('❌ Gagal menambahkan views:', error);
@@ -136,11 +124,7 @@ const NewsDetail = () => {
           <span className="font-semibold text-blue-600">{news.category}</span>
           <span>•</span>
           <time>
-            {new Date(news.createdAt).toLocaleDateString('id-ID', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
+            {formatDate(news.createdAt)}
           </time>
           {news.views && (
             <>
@@ -153,14 +137,10 @@ const NewsDetail = () => {
 
       {/* Featured Image */}
       <div className="w-full aspect-[16/9] mb-8 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-        <img
-          src={news.image_url || news.imageUrl || '/image/fallback.jpg'}
+        <NewsImage
+          src={news.image_url || news.imageUrl}
           alt={news.title}
           className="w-full h-full object-contain bg-gray-50"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/image/fallback.jpg';
-          }}
         />
       </div>
 
@@ -235,11 +215,7 @@ const NewsDetail = () => {
                   <div className="flex items-center justify-between mb-2">
                     <p className="font-semibold text-gray-900">{comment.name}</p>
                     <time className="text-xs text-gray-500">
-                      {new Date(comment.createdAt).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
+                      {formatDate(comment.createdAt)}
                     </time>
                   </div>
                   <p className="text-gray-700 leading-relaxed">{comment.comment}</p>

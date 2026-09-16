@@ -9,7 +9,7 @@ describe('Token Utils', () => {
   });
 
   describe('setToken', () => {
-    it('✅ Harus menyimpan token ke localStorage', () => {
+    it('should save token to localStorage', () => {
       const token = 'test-token-123';
       setToken(token);
       
@@ -17,7 +17,7 @@ describe('Token Utils', () => {
       expect(localStorage.getItem('token')).toBe(token);
     });
 
-    it('✅ Harus mengganti token yang sudah ada', () => {
+    it('should replace existing token', () => {
       setToken('old-token');
       setToken('new-token');
       
@@ -26,7 +26,7 @@ describe('Token Utils', () => {
   });
 
   describe('getToken', () => {
-    it('✅ Harus mengembalikan token dari localStorage', () => {
+    it('should return token from localStorage', () => {
       localStorage.setItem('token', 'test-token');
       
       const token = getToken();
@@ -35,7 +35,7 @@ describe('Token Utils', () => {
       expect(token).toBe('test-token');
     });
 
-    it('✅ Harus mengembalikan null jika token tidak ada', () => {
+    it('should return null when token does not exist', () => {
       const token = getToken();
       
       expect(token).toBeNull();
@@ -43,7 +43,7 @@ describe('Token Utils', () => {
   });
 
   describe('removeToken', () => {
-    it('✅ Harus menghapus token dari localStorage', () => {
+    it('should remove token from localStorage', () => {
       localStorage.setItem('token', 'test-token');
       
       removeToken();
@@ -52,10 +52,9 @@ describe('Token Utils', () => {
       expect(localStorage.getItem('token')).toBeNull();
     });
 
-    it('✅ Harus aman dipanggil meskipun token tidak ada', () => {
+    it('should be safe to call even when token does not exist', () => {
       expect(() => removeToken()).not.toThrow();
       expect(localStorage.removeItem).toHaveBeenCalledWith('token');
     });
   });
 });
-

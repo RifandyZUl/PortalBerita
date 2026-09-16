@@ -10,7 +10,7 @@ vi.mock('framer-motion', () => ({
 }));
 
 describe('PageWrapper', () => {
-  it('✅ Harus render children dengan benar', () => {
+  it('should render children correctly', () => {
     render(
       <PageWrapper>
         <div>Test Content</div>
@@ -20,7 +20,7 @@ describe('PageWrapper', () => {
     expect(screen.getByText('Test Content')).toBeInTheDocument();
   });
 
-  it('✅ Harus memiliki className yang benar', () => {
+  it('should have correct className', () => {
     const { container } = render(
       <PageWrapper>
         <div>Test</div>
@@ -31,4 +31,3 @@ describe('PageWrapper', () => {
     expect(wrapper).toHaveClass('h-full');
   });
 });
-

@@ -1,5 +1,6 @@
 // Konfigurasi axios dengan baseURL
 import axios from 'axios';
+import { handleApiError, isUnauthorizedError } from './errorHandler.js';
 
 // Gunakan VITE_API_URL jika ada, jika tidak cek apakah di production
 // Di production (Vercel), gunakan Railway URL, di development gunakan localhost
@@ -49,18 +50,26 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('❌ API Error:', error.response?.data || error.message);
-    
-    // Handle 401 Unauthorized - redirect to login
-    if (error.response?.status === 401) {
+    // Handle 401 Unauthorized - clear token
+    if (isUnauthorizedError(error)) {
       // Pastikan localStorage tersedia (hanya di browser)
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.removeItem('token');
+        // Optional: Redirect to login (uncomment jika diperlukan)
+        // if (window.location.pathname !== '/admin/login') {
+        //   window.location.href = '/admin/login';
+        // }
       }
-      // Don't redirect automatically, let the component handle it
     }
     
-    return Promise.reject(error);
+    // Format error dengan centralized handler
+    // Error akan di-format dengan user-friendly message
+    const formattedError = handleApiError(error, 'Terjadi kesalahan. Silakan coba lagi.', {
+      url: error.config?.url,
+      method: error.config?.method,
+    });
+    
+    return Promise.reject(formattedError);
   }
 );
 

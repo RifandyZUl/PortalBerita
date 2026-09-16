@@ -1,17 +1,10 @@
 // src/pages/SearchPage.jsx
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { formatWaktuLalu } from '../../utils/time';
-import api from '@/utils/api';
+import { searchNews } from '@/services/news.service.js';
+import { formatDate, formatTimeAgo } from '@/utils/dateFormatter.js';
+import NewsImage from '@/components/NewsImage.jsx';
 import SkeletonLoader from '@/components/SkeletonLoader';
-
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 const SearchPage = () => {
   const [sort, setSort] = useState('Terbaru');
@@ -25,8 +18,8 @@ const SearchPage = () => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/api/news/search?keyword=${keyword}`);
-        setNewsList(res.data.data || []);
+        const data = await searchNews(keyword);
+        setNewsList(data || []);
       } catch (err) {
         console.error('Gagal mengambil berita:', err);
         setNewsList([]);
@@ -120,12 +113,8 @@ const SearchPage = () => {
                   className="flex flex-col md:flex-row gap-4 group border-b border-gray-200 pb-6 hover:bg-gray-50 p-4 -m-4 rounded transition"
                 >
                   <div className="w-full md:w-56 h-40 rounded bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                    <img
-                      src={news.imageUrl || news.image_url || '/image/fallback.jpg'}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/image/fallback.jpg';
-                      }}
+                    <NewsImage
+                      src={news.imageUrl || news.image_url}
                       alt={news.title}
                       className="w-full h-full object-contain bg-gray-50"
                     />
@@ -144,7 +133,7 @@ const SearchPage = () => {
                       </p>
                     )}
                     <p className="text-xs text-gray-400">
-                      {formatWaktuLalu(news.createdAt || news.publishedAt)}
+                      {formatTimeAgo(news.createdAt || news.publishedAt)}
                       {news.views && ` • ${news.views} views`}
                     </p>
                   </div>

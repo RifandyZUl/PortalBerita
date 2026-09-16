@@ -55,10 +55,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock utils
-vi.mock('../../utils/imageTransform', () => ({
-  getResizedImage: (url) => url || '/placeholder.jpg',
-}));
+// Mock utils - imageTransform tidak digunakan lagi, menggunakan NewsImage component
 
 // Mock SkeletonLoader
 vi.mock('@/components/SkeletonLoader', () => ({

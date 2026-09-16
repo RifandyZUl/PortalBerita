@@ -27,6 +27,24 @@ export default defineConfig({
       shuffle: false,
     },
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        '**/*.config.js',
+        '**/*.d.ts',
+        '**/__tests__/**',
+        '**/__mocks__/**',
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80,
+      },
+    },
   },
   resolve: {
     alias: {

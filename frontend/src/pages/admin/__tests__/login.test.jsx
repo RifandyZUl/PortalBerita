@@ -3,19 +3,28 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '../login';
-import * as authAPI from '../../../api/auth';
-import * as tokenUtils from '../../../utils/token';
 
 // Mock dependencies
-vi.mock('../../../api/auth');
-vi.mock('../../../utils/token');
+const mockNavigate = vi.fn();
+let mockAuthError = null;
+let mockLoginFn = vi.fn();
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => vi.fn(),
+    useNavigate: () => mockNavigate,
   };
 });
+
+// Mock useAuth hook - dapat diubah state errornya
+vi.mock('../../../hooks/useAuth', () => ({
+  useAuth: () => ({
+    login: mockLoginFn,
+    error: mockAuthError,
+    loading: false
+  })
+}));
 
 const renderWithRouter = (component) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
@@ -25,133 +34,124 @@ describe('Login Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockAuthError = null;
+    mockLoginFn = vi.fn();
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  it('✅ Harus render form login dengan benar', () => {
-    renderWithRouter(<Login />);
-    
-    // Gunakan getAllByText karena mungkin ada multiple elements dari test lain
-    const signInTexts = screen.getAllByText('Sign In');
-    expect(signInTexts.length).toBeGreaterThan(0);
-    expect(screen.getByLabelText(/email \/ username/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    // Gunakan getAllByRole karena mungkin ada multiple buttons dari test lain
-    const buttons = screen.getAllByRole('button', { name: /sign in/i });
-    expect(buttons.length).toBeGreaterThan(0);
-  });
-
-  it('✅ Harus update input fields ketika user mengetik', async () => {
-    const user = userEvent.setup();
-    renderWithRouter(<Login />);
-    
-    const emailInput = screen.getByLabelText(/email \/ username/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    
-    // Clear input terlebih dahulu untuk menghindari test pollution
-    await user.clear(emailInput);
-    await user.clear(passwordInput);
-    
-    await user.type(emailInput, 'admin@test.com');
-    await user.type(passwordInput, 'password123');
-    
-    expect(emailInput).toHaveValue('admin@test.com');
-    expect(passwordInput).toHaveValue('password123');
-  });
-
-  it('✅ Harus menampilkan error jika login gagal', async () => {
-    const user = userEvent.setup();
-    authAPI.loginAdmin.mockRejectedValue(new Error('Invalid credentials'));
-    
-    renderWithRouter(<Login />);
-    
-    const emailInput = screen.getByLabelText(/email \/ username/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const submitButtons = screen.getAllByRole('button', { name: /sign in/i });
-    
-    // Clear input terlebih dahulu untuk menghindari test pollution
-    await user.clear(emailInput);
-    await user.clear(passwordInput);
-    
-    await user.type(emailInput, 'admin@test.com');
-    await user.type(passwordInput, 'wrongpassword');
-    await user.click(submitButtons[0]);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+  describe('Form Rendering', () => {
+    it('should render login form correctly', () => {
+      renderWithRouter(<Login />);
+      
+      // Use more specific query to avoid multiple matches
+      expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/email \/ username/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
     });
   });
 
-  it('✅ Harus menyimpan token dan redirect jika login berhasil', async () => {
-    const user = userEvent.setup();
-    const mockToken = 'test-token-123';
-    authAPI.loginAdmin.mockResolvedValue({
-      data: { token: mockToken },
+  describe('User Input', () => {
+    it('should update input fields when user types', async () => {
+      const user = userEvent.setup();
+      renderWithRouter(<Login />);
+      
+      const emailInput = screen.getByLabelText(/email \/ username/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+      
+      await user.clear(emailInput);
+      await user.clear(passwordInput);
+      
+      await user.type(emailInput, 'admin@test.com');
+      await user.type(passwordInput, 'password123');
+      
+      expect(emailInput).toHaveValue('admin@test.com');
+      expect(passwordInput).toHaveValue('password123');
     });
-    
-    renderWithRouter(<Login />);
-    
-    const emailInput = screen.getByLabelText(/email \/ username/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const submitButtons = screen.getAllByRole('button', { name: /sign in/i });
-    
-    // Clear input terlebih dahulu untuk menghindari test pollution
-    await user.clear(emailInput);
-    await user.clear(passwordInput);
-    
-    await user.type(emailInput, 'admin@test.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButtons[0]);
-    
-    await waitFor(() => {
-      expect(authAPI.loginAdmin).toHaveBeenCalledWith('admin@test.com', 'password123');
-      expect(tokenUtils.setToken).toHaveBeenCalledWith(mockToken);
+
+    it('should validate required fields', () => {
+      renderWithRouter(<Login />);
+      
+      const emailInput = screen.getByLabelText(/email \/ username/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+      
+      expect(emailInput).toBeRequired();
+      expect(passwordInput).toBeRequired();
     });
   });
 
-  it('✅ Harus menampilkan error jika token tidak ditemukan', async () => {
-    const user = userEvent.setup();
-    authAPI.loginAdmin.mockResolvedValue({
-      data: {}, // No token
+  describe('Error Handling', () => {
+    it('should display error when login fails', async () => {
+      const user = userEvent.setup();
+      mockAuthError = 'Invalid credentials';
+      
+      renderWithRouter(<Login />);
+      
+      const emailInput = screen.getByLabelText(/email \/ username/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+      const submitButton = screen.getByRole('button', { name: /sign in/i });
+      
+      await user.clear(emailInput);
+      await user.clear(passwordInput);
+      
+      await user.type(emailInput, 'admin@test.com');
+      await user.type(passwordInput, 'wrongpassword');
+      await user.click(submitButton);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
-    
-    renderWithRouter(<Login />);
-    
-    const emailInput = screen.getByLabelText(/email \/ username/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const submitButtons = screen.getAllByRole('button', { name: /sign in/i });
-    
-    // Clear input terlebih dahulu untuk menghindari test pollution
-    await user.clear(emailInput);
-    await user.clear(passwordInput);
-    
-    await user.type(emailInput, 'admin@test.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButtons[0]);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/token tidak ditemukan/i)).toBeInTheDocument();
+
+    it('should display error when token is not found', async () => {
+      const user = userEvent.setup();
+      mockAuthError = 'Token tidak ditemukan dalam response';
+      
+      renderWithRouter(<Login />);
+      
+      const emailInput = screen.getByLabelText(/email \/ username/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+      const submitButton = screen.getByRole('button', { name: /sign in/i });
+      
+      await user.clear(emailInput);
+      await user.clear(passwordInput);
+      
+      await user.type(emailInput, 'admin@test.com');
+      await user.type(passwordInput, 'password123');
+      await user.click(submitButton);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/token tidak ditemukan/i)).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
   });
 
-  it('✅ Harus validasi required fields', async () => {
-    const user = userEvent.setup();
-    renderWithRouter(<Login />);
-    
-    // Gunakan getAllByRole karena mungkin ada multiple buttons dari test lain
-    const submitButtons = screen.getAllByRole('button', { name: /sign in/i });
-    expect(submitButtons.length).toBeGreaterThan(0);
-    await user.click(submitButtons[0]);
-    
-    // HTML5 validation should prevent submission
-    const emailInput = screen.getByLabelText(/email \/ username/i);
-    expect(emailInput).toBeRequired();
-    
-    const passwordInput = screen.getByLabelText(/password/i);
-    expect(passwordInput).toBeRequired();
+  describe('Success Flow', () => {
+    it('should save token and redirect when login succeeds', async () => {
+      const user = userEvent.setup();
+      mockAuthError = null;
+      mockLoginFn.mockResolvedValue({ token: 'test-token-123' });
+      
+      renderWithRouter(<Login />);
+      
+      const emailInput = screen.getByLabelText(/email \/ username/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+      const submitButton = screen.getByRole('button', { name: /sign in/i });
+      
+      await user.clear(emailInput);
+      await user.clear(passwordInput);
+      
+      await user.type(emailInput, 'admin@test.com');
+      await user.type(passwordInput, 'password123');
+      await user.click(submitButton);
+      
+      await waitFor(() => {
+        expect(mockLoginFn).toHaveBeenCalledWith('admin@test.com', 'password123');
+        expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard');
+      }, { timeout: 3000 });
+    });
   });
 });
-

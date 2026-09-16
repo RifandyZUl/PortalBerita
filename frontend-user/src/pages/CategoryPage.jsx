@@ -1,16 +1,10 @@
 // src/pages/CategoryPage.jsx
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
-import api from '@/utils/api';
+import { getPublishedNews } from '@/services/news.service.js';
+import { formatDate } from '@/utils/dateFormatter.js';
+import NewsImage from '@/components/NewsImage.jsx';
 import SkeletonLoader from '@/components/SkeletonLoader';
-
-function formatDate(date) {
-  return new Date(date).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -41,8 +35,7 @@ const CategoryPage = () => {
       try {
         setLoading(true);
 
-        const response = await api.get('/api/news/public/list');
-        const rawData = response.data?.data || [];
+        const rawData = await getPublishedNews();
 
         // Normalisasi data kategori
         const normalizedData = rawData.map((item) => {
@@ -121,13 +114,9 @@ const CategoryPage = () => {
                   className="group block mb-6"
                 >
                   <div className="w-full h-80 md:h-96 rounded-lg bg-gray-100 overflow-hidden mb-4 flex items-center justify-center">
-                    <img
-                      src={newsList[0].image_url || '/image/fallback.jpg'}
+                    <NewsImage
+                      src={newsList[0].image_url}
                       alt={newsList[0].title}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/image/fallback.jpg';
-                      }}
                       className="w-full h-full object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
@@ -156,13 +145,9 @@ const CategoryPage = () => {
                         className="group"
                       >
                         <div className="w-full h-48 rounded-lg bg-gray-100 overflow-hidden mb-3 flex items-center justify-center">
-                          <img
-                            src={news.image_url || '/image/fallback.jpg'}
+                          <NewsImage
+                            src={news.image_url}
                             alt={news.title}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = '/image/fallback.jpg';
-                            }}
                             className="w-full h-full object-contain bg-gray-50 group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
@@ -202,13 +187,9 @@ const CategoryPage = () => {
                       className="group flex gap-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 p-2 -m-2 rounded transition"
                     >
                       <div className="w-32 h-24 rounded bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                        <img
-                          src={news.image_url || '/image/fallback.jpg'}
+                        <NewsImage
+                          src={news.image_url}
                           alt={news.title}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/image/fallback.jpg';
-                          }}
                           className="w-full h-full object-contain bg-gray-50"
                         />
                       </div>

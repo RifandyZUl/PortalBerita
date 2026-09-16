@@ -1,7 +1,7 @@
 // Mock NewsForm untuk testing
 // File ini akan otomatis digunakan oleh Vitest ketika NewsForm di-mock
 
-const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess }) => {
+const NewsForm = ({ selectedArticle }) => {
   // Mock component yang tidak error - tidak akan fetch categories/authors
   return (
     <div data-testid="news-form">

@@ -8,7 +8,10 @@
  * 
  * YANG DITEST:
  * 1. GET /api/authors - Mengambil daftar semua penulis
- * 2. Validasi authorId saat membuat berita baru
+ * 2. GET /api/authors/:id - Mengambil detail penulis
+ * 3. PUT /api/authors/:id - Update penulis
+ * 4. DELETE /api/authors/:id - Delete penulis
+ * 5. Validasi authorId saat membuat berita baru
  * 
  * CARA KERJA:
  * - Sebelum test: Setup database dan buat data dummy (penulis, admin, token)
@@ -17,8 +20,8 @@
  */
 
 import request from 'supertest';
-import app from '../app.js';
-import db from '../models/index.js';
+import app from '../src/app.js';
+import db from '../src/infrastructure/database/models/index.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
@@ -152,10 +155,13 @@ describe('🧪 AUTHOR CONTROLLER TEST', () => {
       // LANGKAH 2: Hapus semua penulis dari database
       await Author.destroy({ where: {} });
       
+      // LANGKAH 2.5: Reset authorIds array karena authors sudah dihapus
+      authorIds = [];
+      
       // LANGKAH 3: Coba ambil daftar penulis
       const res = await request(app).get('/api/authors');
       
-      // LANGKAH 3: Verifikasi response
+      // LANGKAH 4: Verifikasi response
       expect(res.statusCode).toBe(200); // Tetap 200, bukan error
       expect(res.body.success).toBe(true); // Tetap sukses
       expect(res.body.data).toEqual([]); // Data harus array kosong
@@ -174,16 +180,22 @@ describe('🧪 AUTHOR CONTROLLER TEST', () => {
      * Tujuan: Memastikan ada data penulis dan kategori untuk testing
      */
     beforeAll(async () => {
-      // Jika penulis sudah dihapus di test sebelumnya, buat lagi
-      if (authorIds.length === 0) {
+      // Pastikan ada penulis untuk testing (buat ulang jika tidak ada)
+      const existingAuthors = await Author.findAll();
+      if (existingAuthors.length === 0) {
         const authors = await Author.bulkCreate([
           { name: 'Penulis Satu' },
           { name: 'Penulis Dua' },
         ]);
         authorIds = authors.map(a => a.authorId);
+      } else {
+        // Update authorIds dengan authors yang ada
+        authorIds = existingAuthors.map(a => a.authorId);
       }
 
       // Buat kategori dummy untuk test (berita butuh kategori)
+      // Hapus kategori lama jika ada, lalu buat baru
+      await Category.destroy({ where: { slug: 'test-category' } });
       await Category.create({ name: 'Test Category', slug: 'test-category' });
     });
 
@@ -242,6 +254,196 @@ describe('🧪 AUTHOR CONTROLLER TEST', () => {
 
       // LANGKAH 3: Verifikasi bahwa sistem menolak
       expect(res.statusCode).toBe(400); // Harus gagal karena authorId tidak valid
+    });
+  });
+
+  /**
+   * ============================================
+   * TEST GROUP: GET /api/authors/:id
+   * ============================================
+   * Menguji endpoint untuk mengambil detail penulis
+   */
+  describe('GET /api/authors/:id - Get Author by ID', () => {
+    let testAuthorId;
+
+    beforeAll(async () => {
+      // Pastikan ada author untuk test
+      const existingAuthors = await Author.findAll();
+      if (existingAuthors.length === 0) {
+        const author = await Author.create({ name: 'Penulis Test Detail' });
+        testAuthorId = author.authorId;
+      } else {
+        testAuthorId = existingAuthors[0].authorId;
+      }
+    });
+
+    it('✅ Berhasil mengambil detail penulis', async () => {
+      const res = await request(app)
+        .get(`/api/authors/${testAuthorId}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toHaveProperty('authorId');
+      expect(res.body.data).toHaveProperty('name');
+      expect(res.body.data.authorId).toBe(testAuthorId);
+    });
+
+    it('❌ Harus gagal jika author tidak ditemukan', async () => {
+      const res = await request(app)
+        .get('/api/authors/99999');
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  /**
+   * ============================================
+   * TEST GROUP: PUT /api/authors/:id (UPDATE)
+   * ============================================
+   * Menguji endpoint untuk update penulis
+   */
+  describe('PUT /api/authors/:id - Update Author', () => {
+    let updateAuthorId;
+
+    beforeEach(async () => {
+      // Hapus author dengan nama yang sama jika ada (untuk menghindari masalah)
+      await Author.destroy({ where: { name: 'Penulis Untuk Update' } });
+      
+      // Buat author untuk di-update
+      const author = await Author.create({ name: 'Penulis Untuk Update' });
+      updateAuthorId = author.authorId;
+      
+      // Verifikasi author benar-benar dibuat
+      const verifyAuthor = await Author.findByPk(updateAuthorId);
+      if (!verifyAuthor) {
+        throw new Error('Failed to create test author');
+      }
+    });
+
+    it('❌ Harus gagal jika tidak ada token', async () => {
+      const res = await request(app)
+        .put(`/api/authors/${updateAuthorId}`)
+        .send({ name: 'Updated Name' });
+
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('❌ Harus gagal jika author tidak ditemukan', async () => {
+      const res = await request(app)
+        .put('/api/authors/99999')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Updated Name' });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('✅ Berhasil update penulis', async () => {
+      const res = await request(app)
+        .put(`/api/authors/${updateAuthorId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Penulis Diupdate' });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.name).toBe('Penulis Diupdate');
+
+      // Verifikasi di database
+      const updatedAuthor = await Author.findByPk(updateAuthorId);
+      expect(updatedAuthor.name).toBe('Penulis Diupdate');
+    });
+
+    it('❌ Harus gagal jika name tidak valid', async () => {
+      const res = await request(app)
+        .put(`/api/authors/${updateAuthorId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: '' }); // Name kosong
+
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  /**
+   * ============================================
+   * TEST GROUP: DELETE /api/authors/:id
+   * ============================================
+   * Menguji endpoint untuk delete penulis
+   */
+  describe('DELETE /api/authors/:id - Delete Author', () => {
+    let deleteAuthorId;
+
+    beforeEach(async () => {
+      // Hapus author dengan nama yang sama jika ada (untuk menghindari masalah)
+      await Author.destroy({ where: { name: 'Penulis Untuk Delete' } });
+      
+      // Buat author untuk di-delete
+      const author = await Author.create({ name: 'Penulis Untuk Delete' });
+      deleteAuthorId = author.authorId;
+      
+      // Verifikasi author benar-benar dibuat
+      const verifyAuthor = await Author.findByPk(deleteAuthorId);
+      if (!verifyAuthor) {
+        throw new Error('Failed to create test author');
+      }
+    });
+
+    it('❌ Harus gagal jika tidak ada token', async () => {
+      const res = await request(app)
+        .delete(`/api/authors/${deleteAuthorId}`);
+
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('❌ Harus gagal jika author tidak ditemukan', async () => {
+      const res = await request(app)
+        .delete('/api/authors/99999')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('✅ Berhasil delete penulis', async () => {
+      const res = await request(app)
+        .delete(`/api/authors/${deleteAuthorId}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+
+      // Verifikasi author sudah dihapus
+      const deletedAuthor = await Author.findByPk(deleteAuthorId);
+      expect(deletedAuthor).toBeNull();
+    });
+
+    it('❌ Harus gagal jika author masih digunakan oleh news', async () => {
+      // Buat author yang digunakan oleh news
+      const author = await Author.create({ name: 'Penulis Dengan News' });
+      const category = await Category.findOrCreate({
+        where: { slug: 'test-category-delete' },
+        defaults: { name: 'Test Category Delete', slug: 'test-category-delete' }
+      });
+      const { News } = db;
+      
+      // Buat news dengan author ini
+      await News.create({
+        title: 'Berita Test',
+        slug: 'berita-test-delete',
+        content: '<p>Ini adalah konten berita yang cukup panjang untuk memenuhi validasi minimal 100 karakter. Konten ini berisi informasi yang cukup lengkap dan detail tentang topik yang dibahas dalam berita ini.</p>',
+        summary: 'Summary',
+        imageUrl: 'https://example.com/test.jpg',
+        categoryId: category[0].categoryId,
+        authorId: author.authorId,
+        adminId: testAdmin.adminId,
+        status: 'published',
+        views: 0
+      });
+
+      // Coba delete author yang masih digunakan
+      const res = await request(app)
+        .delete(`/api/authors/${author.authorId}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      // Harus gagal karena foreign key constraint
+      expect(res.statusCode).toBe(400);
     });
   });
 });

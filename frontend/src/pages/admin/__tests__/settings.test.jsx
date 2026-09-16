@@ -1,9 +1,47 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import Settings from '../settings';
 
-// Mock dependencies
-global.fetch = vi.fn();
+// Mock api utils - MUST be before component import
+const mockApiGet = vi.fn();
+const mockApiPut = vi.fn();
+
+// Mock axios first to prevent real HTTP requests
+vi.mock('axios', () => ({
+  default: {
+    create: vi.fn(() => ({
+      get: (...args) => mockApiGet(...args),
+      put: (...args) => mockApiPut(...args),
+      interceptors: {
+        request: {
+          use: vi.fn(),
+        },
+        response: {
+          use: vi.fn(),
+        },
+      },
+    })),
+  },
+}));
+
+vi.mock('../../utils/api', () => ({
+  default: {
+    get: (...args) => mockApiGet(...args),
+    put: (...args) => mockApiPut(...args),
+    interceptors: {
+      request: {
+        use: vi.fn(),
+      },
+      response: {
+        use: vi.fn(),
+      },
+    },
+  },
+}));
+
+// Import after mocks
+import Settings from '../settings';
+import { createMockAdmin, createMockAdminResponse } from '../../../test/factories';
+
 vi.mock('@/components/settings/ProfileCard', () => ({
   default: ({ admin, onPhotoSelect }) => (
     <div data-testid="profile-card">
@@ -12,6 +50,7 @@ vi.mock('@/components/settings/ProfileCard', () => ({
     </div>
   ),
 }));
+
 vi.mock('@/components/settings/ProfileForm', () => ({
   default: ({ admin, onProfileUpdated }) => (
     <div data-testid="profile-form">
@@ -23,7 +62,8 @@ vi.mock('@/components/settings/ProfileForm', () => ({
 
 describe('Settings Page', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockApiGet.mockReset();
+    mockApiPut.mockReset();
     localStorage.setItem('token', 'test-token');
   });
 
@@ -31,65 +71,83 @@ describe('Settings Page', () => {
     cleanup();
   });
 
-  it('✅ Harus menampilkan loading saat data sedang dimuat', () => {
-    global.fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
+  describe('Loading States', () => {
+    it('should display loading when data is being fetched', () => {
+      mockApiGet.mockImplementation(() => new Promise(() => {})); // Never resolves
     
     render(<Settings />);
     
-    // Gunakan getAllByText karena mungkin ada beberapa "Loading..." dari test lain
-    const loadingElements = screen.getAllByText('Loading...');
-    expect(loadingElements.length).toBeGreaterThan(0);
+      expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
   });
 
-  it('✅ Harus menampilkan error jika fetch gagal', async () => {
-    global.fetch.mockResolvedValue({
-      ok: false,
-      json: async () => ({ message: 'Unauthorized' }),
-    });
+  describe('Error Handling', () => {
+    it('should display error message when fetch fails', async () => {
+      mockApiGet.mockRejectedValue(new Error('Network error'));
 
     render(<Settings />);
 
     await waitFor(() => {
       expect(screen.getByText('Gagal memuat profil.')).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+
+    it('should handle network timeout gracefully', async () => {
+      mockApiGet.mockImplementation(() => 
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 100)
+        )
+      );
+
+      render(<Settings />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Gagal memuat profil.')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
   });
 
-  it('✅ Harus menampilkan profile card dan form setelah data dimuat', async () => {
-    const mockAdmin = {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      photo: 'https://example.com/photo.jpg',
-    };
+  describe('Data Display', () => {
+    it('should display profile card and form after data is loaded', async () => {
+      const mockAdmin = createMockAdmin({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        photo: 'https://example.com/photo.jpg',
+      });
 
-    global.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ admin: mockAdmin }),
+      // Override default mock for this test
+      mockApiGet.mockResolvedValueOnce(createMockAdminResponse(mockAdmin));
+
+      render(<Settings />);
+
+      // Wait for profile card and form to be displayed
+      await waitFor(() => {
+        expect(screen.getByTestId('profile-card')).toBeInTheDocument();
+        expect(screen.getByTestId('profile-form')).toBeInTheDocument();
+        expect(screen.getByText('John')).toBeInTheDocument();
+        expect(screen.getByText('john@example.com')).toBeInTheDocument();
+      }, { timeout: 5000 });
     });
 
-    render(<Settings />);
+    it('should display title "Account Settings"', async () => {
+      const mockAdmin = createMockAdmin({
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+      });
 
-    await waitFor(() => {
-      expect(screen.getByTestId('profile-card')).toBeInTheDocument();
-      expect(screen.getByTestId('profile-form')).toBeInTheDocument();
-      expect(screen.getByText('John')).toBeInTheDocument();
-      // Gunakan getAllByText karena mungkin ada beberapa email dari test lain
-      const emails = screen.getAllByText('john@example.com');
-      expect(emails.length).toBeGreaterThan(0);
-    });
-  });
+      // Override default mock for this test
+      mockApiGet.mockResolvedValueOnce(createMockAdminResponse(mockAdmin));
 
-  it('✅ Harus menampilkan title "Account Settings"', async () => {
-    global.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ admin: {} }),
-    });
+      render(<Settings />);
 
-    render(<Settings />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Account Settings')).toBeInTheDocument();
+      // Wait for title to be displayed
+      await waitFor(() => {
+        expect(screen.getByText('Account Settings')).toBeInTheDocument();
+        const errorMessage = screen.queryByText('Gagal memuat profil.');
+        expect(errorMessage).not.toBeInTheDocument();
+      }, { timeout: 5000 });
     });
   });
 });
-

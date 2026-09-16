@@ -1,24 +1,64 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import axios from 'axios';
-import ManageCategories from '../ManageCategories';
-import toast from 'react-hot-toast';
 
-// Mock dependencies
-vi.mock('axios');
+// Mock api utils - MUST be before component import
+const mockApiGet = vi.fn();
+const mockApiPost = vi.fn();
+const mockApiPut = vi.fn();
+const mockApiDelete = vi.fn();
+
+// Mock axios first to prevent real HTTP requests
+vi.mock('axios', () => ({
+  default: {
+    create: vi.fn(() => ({
+      get: (...args) => mockApiGet(...args),
+      post: (...args) => mockApiPost(...args),
+      put: (...args) => mockApiPut(...args),
+      delete: (...args) => mockApiDelete(...args),
+      interceptors: {
+        request: {
+          use: vi.fn(),
+        },
+        response: {
+          use: vi.fn(),
+        },
+      },
+    })),
+  },
+}));
+
+vi.mock('../../utils/api', () => ({
+  default: {
+    get: (...args) => mockApiGet(...args),
+    post: (...args) => mockApiPost(...args),
+    put: (...args) => mockApiPut(...args),
+    delete: (...args) => mockApiDelete(...args),
+    interceptors: {
+      request: {
+        use: vi.fn(),
+      },
+      response: {
+        use: vi.fn(),
+      },
+    },
+  },
+}));
+
 vi.mock('react-hot-toast', () => ({
   default: {
     error: vi.fn(),
     success: vi.fn(),
   },
 }));
+
 vi.mock('../../components/category/CategoryForm', () => ({
-  default: ({ onSubmit, category }) => (
+  default: ({ onSubmit }) => (
     <div data-testid="category-form">
       <button onClick={() => onSubmit({ name: 'Test', slug: 'test' })}>Submit</button>
     </div>
   ),
 }));
+
 vi.mock('../../components/category/CategoryTable', () => ({
   default: ({ categories, onEdit, onDelete }) => (
     <div data-testid="category-table">
@@ -32,6 +72,7 @@ vi.mock('../../components/category/CategoryTable', () => ({
     </div>
   ),
 }));
+
 vi.mock('../../components/ModalConfirm', () => ({
   default: ({ isOpen, onConfirm, onCancel }) =>
     isOpen ? (
@@ -41,19 +82,32 @@ vi.mock('../../components/ModalConfirm', () => ({
       </div>
     ) : null,
 }));
+
 vi.mock('../../components/LoadingSpinner', () => ({
   default: () => <div data-testid="loading-spinner">Loading...</div>,
 }));
+
 vi.mock('../../components/PageWrapper', () => ({
   default: ({ children }) => <div>{children}</div>,
 }));
+
 vi.mock('../../components/skeleton/SkeletonCategoryTable', () => ({
   default: () => <div data-testid="skeleton-table">Loading...</div>,
 }));
 
+// Import after mocks
+import ManageCategories from '../ManageCategories';
+import toast from 'react-hot-toast';
+import {
+  createMockCategories,
+} from '../../../test/factories';
+
 describe('ManageCategories Page', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockApiGet.mockReset();
+    mockApiPost.mockReset();
+    mockApiPut.mockReset();
+    mockApiDelete.mockReset();
     localStorage.setItem('token', 'test-token');
   });
 
@@ -61,89 +115,131 @@ describe('ManageCategories Page', () => {
     cleanup();
   });
 
-  it('✅ Harus menampilkan loading spinner saat data sedang dimuat', () => {
-    axios.get.mockImplementation(() => new Promise(() => {})); // Never resolves
-    
-    render(<ManageCategories />);
-    
-    // Mock LoadingSpinner mungkin tidak bekerja, cari spinner dengan class atau testid
-    const spinner = screen.queryByTestId('loading-spinner');
-    if (!spinner) {
-      // Jika mock tidak bekerja, cari elemen dengan class animate-spin
-      const spinnerElement = document.querySelector('.animate-spin');
-      expect(spinnerElement).toBeTruthy();
-    } else {
+  describe('Loading States', () => {
+    it('should display loading spinner when data is being fetched', () => {
+      mockApiGet.mockImplementation(() => new Promise(() => {})); // Never resolves
+      
+      const { container } = render(<ManageCategories />);
+      
+      // Initial load (categories.length === 0) uses LoadingSpinner
+      // Check by spinner class since LoadingSpinner mock may not be applied
+      const spinner = container.querySelector('.animate-spin');
       expect(spinner).toBeInTheDocument();
-    }
+    });
   });
 
-  it('✅ Harus menampilkan kategori setelah data dimuat', async () => {
-    const mockCategories = [
-      {
-        categoryId: 1,
-        name: 'Technology',
-        slug: 'technology',
-      },
-    ];
-
-    axios.get.mockResolvedValue({
-      data: {
+  describe('Data Display', () => {
+    it('should display categories after data is loaded', async () => {
+      const mockCategories = createMockCategories(1, { 
+        categoryId: 1, 
+        name: 'Technology', 
+        slug: 'technology' 
+      });
+      
+      // Override default mock for this test
+      mockApiGet.mockResolvedValueOnce({
         data: {
-          data: mockCategories,
-          totalPages: 1,
+          data: {
+            data: mockCategories,
+            totalPages: 1,
+          },
         },
-      },
+      });
+
+      render(<ManageCategories />);
+
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      // Wait for categories to be displayed - use findByText since data is already in DOM
+      // The real CategoryTable component is being used, so we need to check for the actual rendered content
+      // There are multiple "Technology" elements (table and form), so we need to be more specific
+      await waitFor(() => {
+        // Check for the slug which is unique to the table row
+        expect(screen.getByText('technology')).toBeInTheDocument();
+        // Check for category name in table (more specific)
+        const categoryNames = screen.getAllByText('Technology');
+        expect(categoryNames.length).toBeGreaterThan(0);
+      }, { timeout: 5000 });
+      
+      // Verify the category data is displayed correctly in the table
+      expect(screen.getByText('technology')).toBeInTheDocument();
     });
 
-    render(<ManageCategories />);
-
-    await waitFor(() => {
-      // Mock CategoryTable mungkin tidak bekerja, cari text yang ada
-      // Atau cari dengan testid jika mock bekerja
-      const categoryElement = screen.queryByTestId('category-1');
-      if (categoryElement) {
-        expect(categoryElement).toBeInTheDocument();
-      } else {
-        // Jika mock tidak bekerja, gunakan getAllByText karena mungkin ada multiple elements
-        const technologyTexts = screen.getAllByText('Technology');
-        expect(technologyTexts.length).toBeGreaterThan(0);
-      }
-    }, { timeout: 3000 });
-  });
-
-  it('✅ Harus menampilkan error toast jika fetch gagal', async () => {
-    axios.get.mockRejectedValue(new Error('Network error'));
-
-    render(<ManageCategories />);
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Gagal memuat kategori');
-    });
-  });
-
-  it('✅ Harus memiliki form untuk menambah kategori baru', async () => {
-    axios.get.mockResolvedValue({
-      data: {
+    it('should display empty state when no categories exist', async () => {
+      mockApiGet.mockResolvedValueOnce({
         data: {
-          data: [],
-          totalPages: 1,
+          data: {
+            data: [],
+            totalPages: 1,
+          },
         },
-      },
+      });
+
+      render(<ManageCategories />);
+
+      await waitFor(() => {
+        const loadingSpinner = screen.queryByTestId('loading-spinner');
+        expect(loadingSpinner).not.toBeInTheDocument();
+        expect(screen.getByText('No categories found.')).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should display error toast when fetch fails', async () => {
+      mockApiGet.mockRejectedValue(new Error('Network error'));
+
+      render(<ManageCategories />);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Gagal memuat kategori');
+      }, { timeout: 3000 });
     });
 
-    render(<ManageCategories />);
+    it('should handle network timeout gracefully', async () => {
+      mockApiGet.mockImplementation(() => 
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 100)
+        )
+      );
 
-    await waitFor(() => {
-      // Cari CategoryForm yang sudah di-mock atau cari elemen yang ada
-      const form = screen.queryByTestId('category-form');
-      if (form) {
-        expect(form).toBeInTheDocument();
-      } else {
-        // Jika mock tidak bekerja, gunakan getAllByText karena mungkin ada multiple elements
-        const manageCategoriesTexts = screen.getAllByText('Manage Categories');
-        expect(manageCategoriesTexts.length).toBeGreaterThan(0);
-      }
-    }, { timeout: 3000 });
-  });
+      render(<ManageCategories />);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalled();
+      }, { timeout: 3000 });
+    });
 });
 
+  describe('Form Display', () => {
+    it('should display form for adding new category', async () => {
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          data: {
+            data: [],
+            totalPages: 1,
+          },
+        },
+      });
+
+      render(<ManageCategories />);
+
+      await waitFor(() => {
+        const loadingSpinner = screen.queryByTestId('loading-spinner');
+        expect(loadingSpinner).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      // Form is always rendered, verify it exists
+      await waitFor(() => {
+        // CategoryForm mock should have data-testid="category-form"
+        // But if real form is rendered, check for form element or "Add New Category" text
+        const formElement = screen.queryByTestId('category-form') || 
+                           screen.queryByText('Add New Category');
+        expect(formElement).toBeTruthy();
+      }, { timeout: 3000 });
+    });
+  });
+});

@@ -1,30 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin } from '../../api/auth';
-import { setToken } from '../../utils/token';
+import { useAuth } from '../../hooks/useAuth';
 
 const Login = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const { login, error: authError, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
     try {
-      const data = await loginAdmin(emailOrUsername, password);
-      const token = data?.data?.token;
-      if (token) {
-        setToken(token);
-      } else {
-        setError('Token tidak ditemukan.');
-      }
-
+      await login(emailOrUsername, password);
       navigate('/admin/dashboard');
-    } catch (err) {
-      setError(err.message || 'Terjadi kesalahan saat login.');
+    } catch {
+      // Error sudah di-handle di hook dengan toast
     }
   };
 
@@ -36,8 +27,8 @@ const Login = () => {
       <div className="bg-white rounded shadow-md w-full max-w-xl px-10 py-10">
         <h2 className="text-2xl font-semibold text-center mb-8">Sign In</h2>
 
-        {error && (
-          <div className="mb-4 text-red-600 text-sm text-center">{error}</div>
+        {authError && (
+          <div className="mb-4 text-red-600 text-sm text-center">{authError}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -71,9 +62,10 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-full hover:bg-blue-700 transition duration-200"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-full hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Loading...' : 'Sign In'}
           </button>
         </form>
       </div>

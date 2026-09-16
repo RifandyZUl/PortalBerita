@@ -19,8 +19,8 @@
  */
 
 import request from 'supertest';
-import app from '../app.js';
-import db from '../models/index.js';
+import app from '../src/app.js';
+import db from '../src/infrastructure/database/models/index.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
@@ -158,7 +158,7 @@ describe('🧪 CATEGORY ENDPOINT TEST', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'Teknologi Lain', slug: 'teknologi-baru' }); // ❌ Slug 'teknologi-baru' sudah ada
 
-      expect(res.statusCode).toBe(400); // Harus gagal karena duplikat
+      expect(res.statusCode).toBe(409); // 409 = Conflict (slug duplikat)
     });
   });
 

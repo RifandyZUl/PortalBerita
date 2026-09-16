@@ -24,6 +24,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
+// eslint-disable-next-line no-undef
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}
@@ -50,9 +51,11 @@ const localStorageMock = (() => {
     }),
   };
 })();
+// eslint-disable-next-line no-undef
 global.localStorage = localStorageMock;
 
 // Mock fetch
+// eslint-disable-next-line no-undef
 global.fetch = vi.fn();
 
 // Cleanup setelah setiap test untuk menghindari test pollution

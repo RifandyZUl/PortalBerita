@@ -5,9 +5,9 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-import connectDB from './config/db.js';
-import db from './models/index.js';
-import app from './app.js';
+import connectDB from './src/config/db.js';
+import db from './src/infrastructure/database/models/index.js';
+import app from './src/app.js';
 
 const PORT = process.env.PORT || 5000;
 

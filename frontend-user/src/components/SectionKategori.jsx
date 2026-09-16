@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getPublishedNews } from '@/services/news.service.js';
+import { formatDate } from '@/utils/dateFormatter.js';
+import NewsImage from '@/components/NewsImage.jsx';
 import SectionTitle from '@/components/SectionTitle';
-import api from '@/utils/api';
-
-const formatDate = (date) =>
-  new Date(date).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 
 const SectionKategori = () => {
   const [newsData, setNewsData] = useState([]);
@@ -17,8 +12,8 @@ const SectionKategori = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await api.get('/api/news/public/list');
-        setNewsData(response.data?.data || []);
+        const data = await getPublishedNews();
+        setNewsData(data || []);
       } catch (err) {
         console.error('❌ Gagal mengambil berita:', err);
         setNewsData([]); // Set empty array on error
@@ -60,13 +55,9 @@ const SectionKategori = () => {
                     className="group flex gap-3 hover:bg-gray-50 p-2 -m-2 rounded transition"
                   >
                     <div className="w-20 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                      <img
-                        src={news.image_url || '/image/fallback.jpg'}
+                      <NewsImage
+                        src={news.image_url}
                         alt={news.title}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/image/fallback.jpg';
-                        }}
                         className="w-full h-full object-contain bg-gray-50"
                       />
                     </div>
@@ -98,13 +89,9 @@ const SectionKategori = () => {
                     className="group flex gap-3 hover:bg-gray-50 p-2 -m-2 rounded transition"
                   >
                     <div className="w-20 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                      <img
-                        src={news.image_url || '/image/fallback.jpg'}
+                      <NewsImage
+                        src={news.image_url}
                         alt={news.title}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/image/fallback.jpg';
-                        }}
                         className="w-full h-full object-contain bg-gray-50"
                       />
                     </div>

@@ -12,8 +12,9 @@ const Settings = () => {
   const fetchProfile = async () => {
     try {
       const res = await api.get('/api/admin/profile');
-      if (res.data?.admin) {
-        setAdminData(res.data.admin);
+      // Response structure: { success: true, message: "...", data: { admin: {...} } }
+      if (res.data?.success && res.data?.data?.admin) {
+        setAdminData(res.data.data.admin);
       } else {
         throw new Error(res.data?.message || 'Gagal memuat profil');
       }

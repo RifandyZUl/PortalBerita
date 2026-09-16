@@ -17,8 +17,8 @@
  */
 
 import request from 'supertest';
-import app from '../app.js';
-import db from '../models/index.js';
+import app from '../src/app.js';
+import db from '../src/infrastructure/database/models/index.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
@@ -119,12 +119,12 @@ describe('🧪 ADMIN CONTROLLER TEST', () => {
 
       // LANGKAH 2: Verifikasi response
       expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('admin'); // Harus ada data admin
+      expect(res.body.data).toHaveProperty('admin'); // Harus ada data admin
       
       // LANGKAH 3: Verifikasi data admin sesuai
-      expect(res.body.admin.adminId).toBe(adminId); // ID harus sesuai
-      expect(res.body.admin.email).toBe('admintest@example.com'); // Email harus sesuai
-      expect(res.body.admin.username).toBe('admintest'); // Username harus sesuai
+      expect(res.body.data.admin.adminId).toBe(adminId); // ID harus sesuai
+      expect(res.body.data.admin.email).toBe('admintest@example.com'); // Email harus sesuai
+      expect(res.body.data.admin.username).toBe('admintest'); // Username harus sesuai
     });
   });
 
@@ -176,8 +176,8 @@ describe('🧪 ADMIN CONTROLLER TEST', () => {
       expect(res.body.message).toBe('Profil berhasil diperbarui');
       
       // LANGKAH 3: Verifikasi data sudah terupdate
-      expect(res.body.admin.firstName).toBe('Jane'); // firstName sudah berubah
-      expect(res.body.admin.lastName).toBe('Smith'); // lastName sudah berubah
+      expect(res.body.data.admin.firstName).toBe('Jane'); // firstName sudah berubah
+      expect(res.body.data.admin.lastName).toBe('Smith'); // lastName sudah berubah
     });
 
     /**
@@ -199,7 +199,7 @@ describe('🧪 ADMIN CONTROLLER TEST', () => {
         });
 
       expect(res.statusCode).toBe(200);
-      expect(res.body.admin.bio).toBe('Updated bio for testing'); // Bio sudah berubah
+      expect(res.body.data.admin.bio).toBe('Updated bio for testing'); // Bio sudah berubah
     });
 
     /**
@@ -220,9 +220,9 @@ describe('🧪 ADMIN CONTROLLER TEST', () => {
 
       expect(res.statusCode).toBe(200);
       // Verifikasi semua field sudah terupdate
-      expect(res.body.admin.firstName).toBe('Updated');
-      expect(res.body.admin.lastName).toBe('Name');
-      expect(res.body.admin.bio).toBe('Final bio update');
+      expect(res.body.data.admin.firstName).toBe('Updated');
+      expect(res.body.data.admin.lastName).toBe('Name');
+      expect(res.body.data.admin.bio).toBe('Final bio update');
     });
 
     /**
@@ -251,12 +251,12 @@ describe('🧪 ADMIN CONTROLLER TEST', () => {
 
       // LANGKAH 2: Verifikasi response
       expect(res.statusCode).toBe(200);
-      expect(res.body.admin.firstName).toBe('OnlyFirstName'); // firstName berubah
+      expect(res.body.data.admin.firstName).toBe('OnlyFirstName'); // firstName berubah
       
       // LANGKAH 3: Verifikasi field lain tetap sama (tidak berubah)
       // lastName dan bio harus tetap dari update sebelumnya
-      expect(res.body.admin.lastName).toBe('Name'); // Tetap dari update sebelumnya
-      expect(res.body.admin.bio).toBe('Final bio update'); // Tetap dari update sebelumnya
+      expect(res.body.data.admin.lastName).toBe('Name'); // Tetap dari update sebelumnya
+      expect(res.body.data.admin.bio).toBe('Final bio update'); // Tetap dari update sebelumnya
     });
   });
 });

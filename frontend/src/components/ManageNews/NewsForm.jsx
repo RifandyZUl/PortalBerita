@@ -228,6 +228,8 @@ const NewsForm = ({ selectedArticle, setSelectedArticle, setArticles, onSuccess 
               src={previewImage}
               alt="Preview"
               className="mt-2 max-h-[250px] object-contain rounded border"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
             />
           )}
         </div>

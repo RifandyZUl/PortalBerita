@@ -28,6 +28,8 @@ const ProfileCard = ({ admin, onPhotoSelect }) => {
             src={previewImage}
             alt="Profile"
             className="w-full h-full object-cover"
+            crossOrigin="anonymous"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500">

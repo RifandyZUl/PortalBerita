@@ -20,8 +20,8 @@
  */
 
 import request from 'supertest';
-import app from '../app.js';
-import db from '../models/index.js';
+import app from '../src/app.js';
+import db from '../src/infrastructure/database/models/index.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
@@ -118,7 +118,8 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toContain('wajib diisi'); // Pesan error harus jelas
+      expect(res.body.message).toBe('Data tidak valid'); // Pesan error validation
+      expect(res.body.errors).toBeInstanceOf(Array); // Harus ada array errors
     });
 
     /**
@@ -169,8 +170,9 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
           comment: 'Test comment',
         });
 
-      expect(res.statusCode).toBe(404); // 404 = Not Found
+      expect(res.statusCode).toBe(400); // 400 = Bad Request (validator rejects invalid newsId)
       expect(res.body.success).toBe(false);
+      expect(res.body.message).toBe('Data tidak valid');
     });
 
     /**
@@ -244,8 +246,10 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
         });
       secondCommentId = createRes.body.data.commentId;
 
-      // LANGKAH 2: Ambil semua komentar
-      const res = await request(app).get('/api/comments');
+      // LANGKAH 2: Ambil semua komentar (perlu token)
+      const res = await request(app)
+        .get('/api/comments')
+        .set('Authorization', `Bearer ${token}`); // Admin token required
 
       // LANGKAH 3: Verifikasi response
       expect(res.statusCode).toBe(200);
@@ -269,7 +273,9 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
      * - Ini berguna untuk admin melihat komentar yang perlu disetujui
      */
     it('✅ Berhasil filter komentar berdasarkan status', async () => {
-      const res = await request(app).get('/api/comments?status=Pending'); // Filter hanya Pending
+      const res = await request(app)
+        .get('/api/comments?status=Pending') // Filter hanya Pending
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.statusCode).toBe(200);
       // Verifikasi semua komentar yang dikembalikan statusnya Pending
@@ -287,7 +293,9 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
      * - Search bersifat case-insensitive (tidak peduli huruf besar/kecil)
      */
     it('✅ Berhasil search komentar', async () => {
-      const res = await request(app).get('/api/comments?search=kedua'); // Cari kata "kedua"
+      const res = await request(app)
+        .get('/api/comments?search=kedua') // Cari kata "kedua"
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data.comments.length).toBeGreaterThan(0); // Harus ada hasil
@@ -304,7 +312,9 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
      * - Ini berguna untuk performa (tidak load semua komentar sekaligus)
      */
     it('✅ Berhasil pagination komentar', async () => {
-      const res = await request(app).get('/api/comments?page=1&limit=1'); // 1 komentar per halaman
+      const res = await request(app)
+        .get('/api/comments?page=1&limit=1') // 1 komentar per halaman
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data.comments.length).toBeLessThanOrEqual(1); // Maksimal 1 komentar
@@ -332,6 +342,7 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
     it('❌ Harus gagal jika status tidak dikirim', async () => {
       const res = await request(app)
         .patch(`/api/comments/${commentId}/status`)
+        .set('Authorization', `Bearer ${token}`)
         .send({}); // ❌ Tidak ada status
 
       expect(res.statusCode).toBe(400); // 400 = Bad Request
@@ -343,6 +354,7 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
     it('❌ Harus gagal jika comment tidak ditemukan', async () => {
       const res = await request(app)
         .patch('/api/comments/99999/status') // ❌ ID tidak ada
+        .set('Authorization', `Bearer ${token}`)
         .send({ status: 'Approved' });
 
       expect(res.statusCode).toBe(404); // 404 = Not Found
@@ -362,6 +374,7 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
       // LANGKAH 1: Update status komentar menjadi Approved
       const res = await request(app)
         .patch(`/api/comments/${commentId}/status`)
+        .set('Authorization', `Bearer ${token}`)
         .send({ status: 'Approved' }); // Setujui komentar
 
       // LANGKAH 2: Verifikasi response
@@ -385,6 +398,7 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
     it('✅ Berhasil mengupdate status komentar ke Spam', async () => {
       const res = await request(app)
         .patch(`/api/comments/${secondCommentId}/status`)
+        .set('Authorization', `Bearer ${token}`)
         .send({ status: 'Spam' }); // Tandai sebagai spam
 
       expect(res.statusCode).toBe(200);
@@ -451,7 +465,9 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
      * TEST: Edge case - Komentar tidak ditemukan
      */
     it('❌ Harus gagal jika comment tidak ditemukan', async () => {
-      const res = await request(app).delete('/api/comments/99999'); // ❌ ID tidak ada
+      const res = await request(app)
+        .delete('/api/comments/99999') // ❌ ID tidak ada
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.statusCode).toBe(404);
     });
@@ -468,7 +484,9 @@ describe('🧪 COMMENT CONTROLLER TEST', () => {
      */
     it('✅ Berhasil menghapus komentar', async () => {
       // LANGKAH 1: Hapus komentar
-      const res = await request(app).delete(`/api/comments/${secondCommentId}`); // ✅ ID valid
+      const res = await request(app)
+        .delete(`/api/comments/${secondCommentId}`) // ✅ ID valid
+        .set('Authorization', `Bearer ${token}`);
 
       // LANGKAH 2: Verifikasi response
       expect(res.statusCode).toBe(200);

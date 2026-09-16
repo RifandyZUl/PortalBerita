@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { formatDate } from '@/utils/dateFormatter.js';
+import NewsImage from '@/components/NewsImage.jsx';
 
 const NewsCardLarge = ({ news }) => {
   return (
@@ -7,14 +9,10 @@ const NewsCardLarge = ({ news }) => {
       className="block group transition-all duration-300 hover:scale-[1.01] hover:opacity-90"
     >
       <div className="w-full h-52 sm:h-56 md:h-64 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
-        <img
-          src={news?.image_url || '/image/fallback.jpg'}
+        <NewsImage
+          src={news?.image_url}
           alt={news?.title}
           className="w-full h-full object-contain bg-gray-50"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/image/fallback.jpg';
-          }}
         />
       </div>
 
@@ -24,11 +22,7 @@ const NewsCardLarge = ({ news }) => {
         </h2>
 
         <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-1">
-          {news?.category} • {new Date(news?.createdAt).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
+          {news?.category} • {formatDate(news?.createdAt)}
         </p>
 
         {news?.excerpt && (

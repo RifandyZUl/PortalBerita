@@ -34,16 +34,21 @@ const ManageComments = () => {
   }, [fetchComments]);
 
   useEffect(() => {
-    const keyword = searchTerm.toLowerCase();
+    const keyword = searchTerm.trim().toLowerCase();
     const filtered = comments.filter((comment) => {
+      // Filter by status
       const matchesStatus =
-        !statusFilter || comment.status.toLowerCase() === statusFilter.toLowerCase();
+        !statusFilter || (comment.status && comment.status.toLowerCase() === statusFilter.toLowerCase());
 
-      const matchesSearch =
-        comment.name.toLowerCase().includes(keyword) ||
-        comment.email.toLowerCase().includes(keyword) ||
-        comment.content.toLowerCase().includes(keyword) ||
-        comment.news?.title?.toLowerCase().includes(keyword);
+      // Filter by search term - if empty, match all
+      let matchesSearch = true;
+      if (keyword) {
+        matchesSearch = 
+          (comment.name && comment.name.toLowerCase().includes(keyword)) ||
+          (comment.email && comment.email.toLowerCase().includes(keyword)) ||
+          (comment.content && comment.content.toLowerCase().includes(keyword)) ||
+          (comment.news?.title && comment.news.title.toLowerCase().includes(keyword));
+      }
 
       return matchesStatus && matchesSearch;
     });

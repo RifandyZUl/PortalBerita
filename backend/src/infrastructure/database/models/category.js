@@ -1,0 +1,51 @@
+/**
+ * Category Model
+ * 
+ * Sequelize model untuk Category table.
+ * 
+ * @module infrastructure/database/models/category
+ */
+
+import { DataTypes } from 'sequelize';
+import { sequelize } from '../../../config/db.js';
+
+const Category = sequelize.define('Category', {
+  categoryId: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: 'category_id'
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  slug: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  description: {
+    type: DataTypes.STRING
+  },
+  parentId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'parent_id',
+    // References didefinisikan di models/index.js untuk menghindari masalah saat sync
+  }, 
+  icon: {
+    type: DataTypes.STRING,
+    allowNull: true
+  }
+}, {
+  tableName: 'categories',
+  timestamps: false,
+  // Indexes:
+  // - slug dan name: unique constraint sudah membuat index otomatis
+  // - parentId: dibuat melalui migration untuk menghindari masalah saat sync
+});
+
+export default Category;
+

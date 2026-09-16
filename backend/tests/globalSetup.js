@@ -1,14 +1,16 @@
-import db from '../models/index.js';
+import db from '../src/infrastructure/database/models/index.js';
 const { sequelize } = db;
 
 /**
- * GLOBAL SETUP - Dijalankan sekali sebelum semua test files
+ * GLOBAL SETUP - File referensi untuk setup database
  * 
  * Tujuan: Menyiapkan database dalam kondisi bersih untuk testing.
  * 
  * CATATAN:
- * - globalSetup di Vitest dijalankan sekali sebelum semua test
- * - Ini berbeda dengan setupFiles yang dijalankan sebelum setiap test file
+ * - File ini adalah referensi untuk setup database
+ * - Jest tidak menggunakan globalSetup seperti Vitest
+ * - Setup sebenarnya dilakukan di setupTestDB.js atau di beforeAll setiap test file
+ * - Setiap test file melakukan setup sendiri di beforeAll untuk isolasi yang lebih baik
  */
 
 export async function setup() {
