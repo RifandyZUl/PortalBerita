@@ -7,6 +7,7 @@
  */
 
 import { Sequelize } from 'sequelize';
+import pg from 'pg';
 import dotenv from 'dotenv';
 
 // Load environment variables HANYA di development/test (di production, Railway sudah set env vars)
@@ -39,6 +40,7 @@ if (dbUrl && dbUrl.includes('channel_binding')) {
 const sequelize = hasDatabaseUrl
   ? new Sequelize(dbUrl, {
       dialect: 'postgres',
+      dialectModule: pg,
       dialectOptions: {
         ssl: needsSSL ? {
           require: true,
@@ -55,6 +57,7 @@ const sequelize = hasDatabaseUrl
         host: process.env.DB_HOST, // Host database (misalnya: localhost)
         port: process.env.DB_PORT || 5432,
         dialect: 'postgres',       // Dialek database yang digunakan
+        dialectModule: pg,
         logging: process.env.NODE_ENV === 'development',
         dialectOptions: {
           ssl: false // Local database tidak perlu SSL
