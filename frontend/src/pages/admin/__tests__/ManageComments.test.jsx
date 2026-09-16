@@ -47,7 +47,7 @@ vi.mock('react-hot-toast', () => ({
 }));
 
 // Import after mocks
-import ManageComments from '../ManageComments';
+import ManageComments from '../manageComments';
 import toast from 'react-hot-toast';
 import {
   createMockComment,

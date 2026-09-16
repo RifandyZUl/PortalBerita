@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/admin/login.jsx';
 import Dashboard from './pages/admin/dashboard.jsx';
 import ManageNews from './pages/admin/ManageNews.jsx';
-import ManageComments from './pages/admin/ManageComments.jsx';
+import ManageComments from './pages/admin/manageComments.jsx';
 import Settings from './pages/admin/settings.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
