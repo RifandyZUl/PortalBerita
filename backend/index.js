@@ -21,16 +21,16 @@ async function startServer() {
     console.log('✅ PostgreSQL connected');
 
     const shouldAlter = process.env.SEQUELIZE_ALTER === 'true';
-
-    await Promise.all([
-      db.Admin.sync({ alter: shouldAlter }),
-      db.Author.sync({ alter: shouldAlter }),
-      db.Category.sync({ alter: shouldAlter }),
-      db.News.sync({ alter: shouldAlter }),
-      db.Comment.sync({ alter: shouldAlter }),
-    ]);
-
-    console.log('✅ Semua tabel disinkronisasi dengan database');
+    if (!process.env.VERCEL && shouldAlter) {
+      await Promise.all([
+        db.Admin.sync({ alter: shouldAlter }),
+        db.Author.sync({ alter: shouldAlter }),
+        db.Category.sync({ alter: shouldAlter }),
+        db.News.sync({ alter: shouldAlter }),
+        db.Comment.sync({ alter: shouldAlter }),
+      ]);
+      console.log('✅ Semua tabel disinkronisasi dengan database');
+    }
 
     if (!process.env.VERCEL) {
       app.listen(PORT, () => {
@@ -38,7 +38,7 @@ async function startServer() {
       });
     }
   } catch (err) {
-    console.error('❌ Failed to start server:', err);
+    console.error('❌ Failed to start server:', err.message);
     if (!process.env.VERCEL) {
       process.exit(1);
     }

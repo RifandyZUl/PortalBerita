@@ -28,8 +28,16 @@ const isLocalDatabase = hasDatabaseUrl && (
 const needsSSL = process.env.DB_SSL === 'true' || (isProduction && hasDatabaseUrl && process.env.DB_SSL !== 'false' && !isLocalDatabase);
 
 
+// Strip channel_binding if present (Node.js pg does not support SASL channel binding)
+let dbUrl = process.env.DATABASE_URL;
+if (dbUrl && dbUrl.includes('channel_binding')) {
+  dbUrl = dbUrl.replace(/([?&])channel_binding=[^&]*(&|$)/g, (match, prefix, suffix) => {
+    return suffix === '&' ? prefix : '';
+  }).replace(/[?&]$/, '');
+}
+
 const sequelize = hasDatabaseUrl
-  ? new Sequelize(process.env.DATABASE_URL, {
+  ? new Sequelize(dbUrl, {
       dialect: 'postgres',
       dialectOptions: {
         ssl: needsSSL ? {
@@ -60,13 +68,18 @@ const sequelize = hasDatabaseUrl
  * 
  * @returns {Promise<void>}
  */
+let isConnected = false;
 const connectDB = async () => {
+  if (isConnected) return;
   try {
     await sequelize.authenticate(); // Menguji koneksi
+    isConnected = true;
     console.log('✅ PostgreSQL connected');
   } catch (error) {
     console.error('❌ Unable to connect to PostgreSQL:', error.message);
-    process.exit(1); // Keluar dari proses jika koneksi gagal
+    if (!process.env.VERCEL) {
+      process.exit(1); // Keluar dari proses hanya jika bukan di serverless
+    }
   }
 };
 
