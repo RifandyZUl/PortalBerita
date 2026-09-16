@@ -32,12 +32,16 @@ async function startServer() {
 
     console.log('✅ Semua tabel disinkronisasi dengan database');
 
-    app.listen(PORT, () => {
-      console.log(`✅ Server running at http://localhost:${PORT}`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`✅ Server running at http://localhost:${PORT}`);
+      });
+    }
   } catch (err) {
     console.error('❌ Failed to start server:', err);
-    process.exit(1);
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
   }
 }
 
@@ -48,7 +52,11 @@ process.on('unhandledRejection', (reason, promise) => {
 
 process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught Exception:', err);
-  process.exit(1);
+  if (!process.env.VERCEL) {
+    process.exit(1);
+  }
 });
 
 startServer();
+
+export default app;
