@@ -87,14 +87,12 @@ app.get('/api/init-database', async (req, res) => {
     const db = (await import('./infrastructure/database/models/index.js')).default;
     const bcrypt = (await import('bcryptjs')).default;
 
-    // 1. Sync all tables
-    await Promise.all([
-      db.Admin.sync({ alter: true }),
-      db.Author.sync({ alter: true }),
-      db.Category.sync({ alter: true }),
-      db.News.sync({ alter: true }),
-      db.Comment.sync({ alter: true }),
-    ]);
+    // 1. Sync all tables sequentially to respect foreign key dependencies
+    await db.Admin.sync({ alter: true });
+    await db.Author.sync({ alter: true });
+    await db.Category.sync({ alter: true });
+    await db.News.sync({ alter: true });
+    await db.Comment.sync({ alter: true });
 
     // 2. Create default Admin
     const hashedPassword = await bcrypt.hash('admin12345', 10);
