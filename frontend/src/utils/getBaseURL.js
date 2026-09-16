@@ -7,9 +7,9 @@ export const getBaseURL = () => {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Jika di production (Vercel), gunakan Railway URL
+  // Jika di production (Vercel), gunakan Vercel Backend URL
   if (import.meta.env.MODE === 'production' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'))) {
-    return 'https://portalberitaa.up.railway.app';
+    return 'https://portal-berita-backend-pi.vercel.app';
   }
   
   // Default untuk development
