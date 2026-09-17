@@ -42,6 +42,7 @@ COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/src ./src
 COPY --from=builder --chown=node:node /app/index.js ./index.js
 COPY --from=builder --chown=node:node /app/migrateData.js ./migrateData.js
+COPY --from=builder --chown=node:node /app/runMigrations.js ./runMigrations.js
 COPY --from=builder --chown=node:node /app/migrations ./migrations
 COPY --from=builder --chown=node:node /app/hash_password.js ./hash_password.js
 
