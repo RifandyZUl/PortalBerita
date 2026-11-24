@@ -45,6 +45,7 @@ COPY --from=builder --chown=node:node /app/migrateData.js ./migrateData.js
 COPY --from=builder --chown=node:node /app/runMigrations.js ./runMigrations.js
 COPY --from=builder --chown=node:node /app/migrations ./migrations
 COPY --from=builder --chown=node:node /app/hash_password.js ./hash_password.js
+COPY --from=builder --chown=node:node /app/seed.js ./seed.js
 
 # Security: Run as unprivileged user
 USER node

@@ -52,5 +52,11 @@ const Admin = sequelize.define('Admin', {
   // Unique constraint untuk email sudah membuat index otomatis
 });
 
+// Never serialize the password hash into API responses
+Admin.prototype.toJSON = function () {
+  const { password, ...rest } = this.get();
+  return rest;
+};
+
 export default Admin;
 

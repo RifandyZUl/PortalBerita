@@ -26,6 +26,12 @@ import commentRoutes from './routes/comments.routes.js';
 
 const app = express();
 
+// Vercel/Railway sit one proxy hop in front; without this every client shares the proxy IP
+// and the login rate limiter becomes global. Not set elsewhere so X-Forwarded-For can't be spoofed.
+if (process.env.VERCEL || process.env.RAILWAY_ENVIRONMENT) {
+  app.set('trust proxy', 1);
+}
+
 // ===== MIDDLEWARE ===== //
 // Security Headers dengan Helmet
 app.use(helmet({
@@ -79,68 +85,6 @@ app.get(['/health', '/api/health'], (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString()
   });
-});
-
-// ===== DATABASE INITIALIZATION & SEEDING ROUTE ===== //
-app.get('/api/init-database', async (req, res) => {
-  try {
-    const db = (await import('./infrastructure/database/models/index.js')).default;
-    const bcrypt = (await import('bcryptjs')).default;
-
-    // 1. Sync all tables sequentially to respect foreign key dependencies
-    await db.Admin.sync({ alter: true });
-    await db.Author.sync({ alter: true });
-    await db.Category.sync({ alter: true });
-    await db.News.sync({ alter: true });
-    await db.Comment.sync({ alter: true });
-
-    // 2. Create default Admin
-    const hashedPassword = await bcrypt.hash('admin12345', 10);
-    const [admin, adminCreated] = await db.Admin.findOrCreate({
-      where: { username: 'admin_super' },
-      defaults: {
-        username: 'admin_super',
-        email: 'admin@portalberita.com',
-        password: hashedPassword,
-        firstName: 'Super',
-        lastName: 'Admin',
-        bio: 'Administrator Portal Berita'
-      }
-    });
-
-    // 3. Seed default Categories if empty
-    const categoryCount = await db.Category.count();
-    let seededCategories = 0;
-    if (categoryCount === 0) {
-      const defaultCategories = [
-        { name: 'Teknologi', slug: 'teknologi' },
-        { name: 'Politik', slug: 'politik' },
-        { name: 'Ekonomi', slug: 'ekonomi' },
-        { name: 'Olahraga', slug: 'olahraga' },
-        { name: 'Hiburan', slug: 'hiburan' }
-      ];
-      await db.Category.bulkCreate(defaultCategories);
-      seededCategories = defaultCategories.length;
-    }
-
-    res.json({
-      success: true,
-      message: 'Database berhasil disinkronisasi dan diinisialisasi!',
-      data: {
-        admin: {
-          username: admin.username,
-          email: admin.email,
-          created: adminCreated
-        },
-        defaultCategoriesCount: seededCategories
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Gagal inisialisasi database: ' + error.message
-    });
-  }
 });
 
 // ===== ROUTES ===== //

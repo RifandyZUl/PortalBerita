@@ -190,7 +190,8 @@ describe('🧪 AUTH CONTROLLER TEST', () => {
       expect([401, 429]).toContain(res.statusCode);
       if (res.statusCode === 401) {
         expect(res.body.success).toBe(false);
-        expect(res.body.message).toBe('Password salah.');
+        // Pesan sama dengan "user tidak ditemukan" agar akun tidak bisa ditebak
+        expect(res.body.message).toBe('Anda tidak memiliki akses');
       }
     });
 

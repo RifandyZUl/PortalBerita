@@ -34,4 +34,4 @@ npm run dev
 
 🔐 Login Default Admin
 Username: admin_super 
-Password: admin12345
+Password: (set via ADMIN_INITIAL_PASSWORD saat `npm run seed` di backend)

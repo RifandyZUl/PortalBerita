@@ -125,6 +125,7 @@ describe('🧪 ADMIN CONTROLLER TEST', () => {
       expect(res.body.data.admin.adminId).toBe(adminId); // ID harus sesuai
       expect(res.body.data.admin.email).toBe('admintest@example.com'); // Email harus sesuai
       expect(res.body.data.admin.username).toBe('admintest'); // Username harus sesuai
+      expect(res.body.data.admin).not.toHaveProperty('password'); // Hash password tidak boleh bocor
     });
   });
 

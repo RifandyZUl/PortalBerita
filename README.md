@@ -61,11 +61,17 @@
 Seluruh sistem (Database PostgreSQL, In-Memory Redis, Backend REST API, Frontend Admin CMS, dan Frontend Public User) telah terorkestrasi secara utuh menggunakan Docker Compose berstandar produksi:
 
 ```bash
-# 1. Jalankan seluruh container di background
+# 1. Siapkan environment, lalu ganti JWT_SECRET dan POSTGRES_PASSWORD dengan nilai acak yang kuat
+cp .env.docker.example .env
+
+# 2. Jalankan seluruh container di background
 docker compose up -d
 
-# 2. Cek status container (pastikan semua berstatus healthy)
+# 3. Cek status container (pastikan semua berstatus healthy)
 docker compose ps
+
+# 4. Buat tabel + admin pertama (sekali saja)
+docker compose exec -e ADMIN_INITIAL_PASSWORD='<password-kuat-min-12-karakter>' backend node seed.js
 ```
 
 ### Pemetaan Layanan & Port
@@ -370,14 +376,12 @@ npm install
    ```
 
 2. **Jalankan Migrasi & Seeding Data**:
-   Masuk ke folder `backend` dan jalankan script berikut untuk membuat struktur tabel otomatis serta mengisi data awal:
+   Masuk ke folder `backend` dan jalankan script berikut untuk membuat struktur tabel otomatis serta mengisi data awal (admin pertama + kategori default):
    ```bash
    cd backend
-   npm run migrate
+   ADMIN_INITIAL_PASSWORD='<password-kuat-min-12-karakter>' npm run seed
    ```
-   *Script ini akan membuat kredensial admin default:*
-   - **Username**: `admin_super`
-   - **Password**: `admin12345`
+   *Username default `admin_super` (ubah lewat `ADMIN_INITIAL_USERNAME`). Password diambil dari `ADMIN_INITIAL_PASSWORD`, tidak ada password default.*
 
 ---
 
@@ -487,10 +491,12 @@ npm test:run
 Proyek ini telah siap untuk dideploy ke lingkungan produksi cloud:
 
 ### 1. Docker Production Deployment (Recommended)
-Cukup jalankan Docker Compose di VPS/Server Cloud (DigitalOcean, AWS EC2, Hetzner, dll.):
+Jalankan Docker Compose di VPS/Server Cloud (DigitalOcean, AWS EC2, Hetzner, dll.). Isi `.env` (dari `.env.docker.example`) dengan secret yang kuat terlebih dahulu:
 ```bash
 docker compose up -d --build
+docker compose exec -e ADMIN_INITIAL_PASSWORD='<password-kuat-min-12-karakter>' backend node seed.js
 ```
+Untuk backend di Vercel/Railway, jalankan `npm run seed` sekali dari komputer lokal dengan `DATABASE_URL` production dan `ADMIN_INITIAL_PASSWORD` di-set.
 
 ### 2. Multi-Cloud Managed Services
 * **Backend API**: Dapat dideploy ke Render, Railway, Fly.io, atau Google Cloud Run menggunakan `backend/Dockerfile`.
